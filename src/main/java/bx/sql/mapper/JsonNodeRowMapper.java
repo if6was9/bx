@@ -16,6 +16,8 @@ import tools.jackson.databind.node.ObjectNode;
 
 public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMapper<T> {
 
+  ResultSet resultSet;
+  Results results;
   ResultSetMetaData md;
 
   static FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -31,12 +33,17 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
 
   public T mapRow(ResultSet resultSet, int rowNum) throws SQLException {
 
-    if (md == null) {
-      md = resultSet.getMetaData();
-    }
-    //	Preconditions.checkState(md == resultSet, "JsonRowMapper cannot be re-used");
+    Preconditions.checkState(
+        this.resultSet == null || this.resultSet == resultSet,
+        getClass().getSimpleName() + " cannot be re-used");
 
-    Results rs = Results.create(resultSet);
+    if (this.resultSet == null) {
+
+      this.resultSet = resultSet;
+      this.results = Results.create(resultSet);
+      this.md = resultSet.getMetaData();
+    }
+
     if (targetType == JsonNodeType.OBJECT) {
       objectNodeTarget = Json.createObjectNode();
     } else if (targetType == JsonNodeType.ARRAY) {
@@ -51,16 +58,16 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
         case (Types.FLOAT):
         case (Types.DOUBLE):
         case (Types.DECIMAL):
-          Optional<Double> d = rs.getDouble(name);
+          Optional<Double> d = results.getDouble(name);
           setDouble(i, name, d.orElse(null));
           break;
         case (Types.BIGINT):
         case (Types.INTEGER):
-          setLong(i, name, rs.getLong(name).orElse(null));
+          setLong(i, name, results.getLong(name).orElse(null));
 
           break;
         case (Types.BOOLEAN):
-          setBoolean(i, name, rs.getBoolean(name).orElse(null));
+          setBoolean(i, name, results.getBoolean(name).orElse(null));
 
           break;
         case (Types.TIME):
@@ -68,17 +75,17 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
         case (Types.TIMESTAMP):
         case (Types.TIMESTAMP_WITH_TIMEZONE):
         case (Types.DATE):
-          setString(i, name, rs.getString(name).orElse(null));
+          setString(i, name, results.getString(name).orElse(null));
           break;
         case (Types.VARCHAR):
         case (Types.NVARCHAR):
-          setString(i, name, rs.getString(name).orElse(null));
+          setString(i, name, results.getString(name).orElse(null));
           break;
         default:
           logger.atWarning().atMostEvery(5, TimeUnit.SECONDS).log(
               "no type conversion for name=%s type=%s(%s) (relying on string)",
               name, type, md.getColumnTypeName(i));
-          setString(i, name, rs.getString(name).orElse(null));
+          setString(i, name, results.getString(name).orElse(null));
       }
     }
 
