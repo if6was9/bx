@@ -1,5 +1,7 @@
 package bx.util;
 
+import com.google.common.collect.Maps;
+import java.util.Map;
 import java.util.Optional;
 
 public class Config {
@@ -8,6 +10,19 @@ public class Config {
 
   static {
     instance = new Config();
+  }
+
+  Map<String, String> overrides = Maps.newHashMap();
+
+  public Config() {
+    this(Map.of());
+  }
+
+  public Config(Map<String, String> props) {
+    if (props == null) {
+      props = Map.of();
+    }
+    this.overrides = props;
   }
 
   public static Config get() {
@@ -20,6 +35,13 @@ public class Config {
       return Optional.empty();
     }
 
-    return S.notBlank(System.getenv(key));
+    Optional<String> val = S.notBlank(overrides.get(key));
+    if (val.isPresent()) {
+      return val;
+    }
+
+    val = S.notBlank(System.getenv(key));
+
+    return val;
   }
 }

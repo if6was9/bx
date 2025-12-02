@@ -1,0 +1,136 @@
+package bx.sql;
+
+import bx.sql.duckdb.DuckDataSource;
+import bx.util.Config;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Suppliers;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Supplier;
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+public class Db {
+
+  private static Supplier<Db> supplier = Suppliers.memoize(Db::createStandard);
+
+  private DataSource dataSource;
+  private JdbcClient jdbcClient;
+
+  public static Db get() {
+
+    return supplier.get();
+  }
+
+  static Db createStandard() {
+
+    try {
+      Config config = new Config();
+
+      var cfg = toHikariConfig(config);
+
+      if (cfg.getJdbcUrl().contains("jdbc:duckdb")) {
+        var dds = DuckDataSource.create(DriverManager.getConnection(cfg.getJdbcUrl()));
+        return new Db(dds);
+
+      } else {
+        var ds = new HikariDataSource(cfg);
+
+        Db db = new Db(ds);
+        return db;
+      }
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public static HikariConfig toHikariConfig(Config config) {
+
+    var hikariKeys =
+        List.of(
+            "jdbcUrl",
+            "dataSourceClassName",
+            "username",
+            "password",
+            "autoCommit",
+            "connectionTimeout",
+            "idleTimeout",
+            "keepaliveTime",
+            "maxLifetime",
+            "connectionTestQuery",
+            "minimumIdle",
+            "maximumPoolSize",
+            "poolName",
+            "initializationFailTimeout",
+            "isolateInternalQueries",
+            "allowPoolSuspension",
+            "readOnly",
+            "registerMbeans",
+            "catalog",
+            "connectionInitSql",
+            "driverClassName",
+            "transactionIsolation",
+            "validationTimeout",
+            "leakDetectionThreshold",
+            "schema",
+            "exceptionOverrideClassName");
+
+    String prefix = "DB";
+
+    var convert = CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE);
+
+    Properties props = new Properties();
+    hikariKeys.stream()
+        .forEach(
+            hikariKeyName -> {
+              String envName =
+                  String.format("%s_%s", prefix.toUpperCase(), convert.convert(hikariKeyName));
+
+              Optional<String> val = config.get(envName);
+
+              if (val.isPresent()) {
+                props.put(hikariKeyName, val.get());
+              }
+              if (envName.equals(prefix + "_JDBC_URL")) {
+                envName = envName.replace("JDBC_URL", "URL");
+                val = config.get(envName);
+                if (val.isPresent()) {
+                  props.put(hikariKeyName, val.get());
+                }
+              }
+            });
+
+    return new HikariConfig(props);
+  }
+
+  static void reset(Supplier<Db> s) {
+    Db.supplier = null;
+
+    Db.supplier =
+        Suppliers.memoize(
+            () -> {
+              return s.get();
+            });
+  }
+
+  public Db(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
+
+  public JdbcClient getJdbcClient() {
+    if (jdbcClient == null) {
+      jdbcClient = JdbcClient.create(getDataSource());
+    }
+
+    return jdbcClient;
+  }
+
+  public DataSource getDataSource() {
+    return dataSource;
+  }
+}

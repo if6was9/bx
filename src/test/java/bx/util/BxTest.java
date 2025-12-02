@@ -1,15 +1,14 @@
 package bx.util;
 
-import bx.sql.DbException;
+import bx.sql.Db;
 import bx.sql.duckdb.DuckDataSource;
+import com.google.common.base.Suppliers;
 import com.google.common.flogger.FluentLogger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
-import org.springframework.jdbc.core.simple.JdbcClient;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class BxTest {
 
@@ -18,13 +17,15 @@ public abstract class BxTest {
 
   DuckDataSource testDataSource;
 
+  Db testDb;
+
   protected void defer(java.lang.AutoCloseable c) {
     deferredAutoCloseable.add(c);
   }
 
   public void loadAdsbTable(String name) {
-    var client = JdbcClient.create(testDataSource());
-    client
+
+    db().getJdbcClient()
         .sql(
             "create table "
                 + name
@@ -32,29 +33,39 @@ public abstract class BxTest {
         .update();
   }
 
-  public JdbcClient testJdbcClient() {
-    return JdbcClient.create(testDataSource());
+  public Db db() {
+    if (testDb == null) {
+
+      DataSource ds = DuckDataSource.createInMemory();
+
+      testDb = new Db(ds);
+      defer((AutoCloseable) ds);
+    }
+    return testDb;
   }
 
-  public DataSource testDataSource() {
+  @BeforeEach
+  private final void setup() {
+
     try {
-      if (testDataSource == null) {
-        Connection c = DriverManager.getConnection("jdbc:duckdb:");
-        defer(c);
-        DuckDataSource ds = (DuckDataSource) DuckDataSource.create(c);
-        this.testDataSource = ds;
-      }
-      return testDataSource;
-    } catch (SQLException e) {
-      throw new DbException(e);
+      var supplierField = Db.class.getDeclaredField("supplier");
+      supplierField.setAccessible(true);
+
+      Supplier<Db> s =
+          Suppliers.memoize(
+              () -> {
+                return db();
+              });
+      supplierField.set(null, s);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new BxException(e);
     }
   }
 
   @AfterEach
   private final void bqTestCleanup() {
 
-    this.testDataSource = null;
-
+    testDb = null;
     try {
       for (AutoCloseable c : deferredAutoCloseable) {
         try {

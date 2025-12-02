@@ -3,25 +3,15 @@ package bx.sql;
 import bx.sql.mapper.ObjectNodeRowMapper;
 import bx.util.BxTest;
 import java.sql.SQLException;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class SpringJdbcTest extends BxTest {
 
   @Test
-  public void testDataSourceIsSame() throws SQLException {
-
-    var c0 = testDataSource();
-    var c1 = testDataSource();
-
-    Assertions.assertThat(c1).isSameAs(c0);
-  }
-
-  @Test
   public void testAdsb() {
     loadAdsbTable("adsb");
 
-    testJdbcClient()
+    db().getJdbcClient()
         .sql("select * from adsb")
         .query(new ObjectNodeRowMapper())
         .list()
@@ -34,7 +24,7 @@ public class SpringJdbcTest extends BxTest {
   @Test
   public void testIt() throws SQLException {
 
-    var client = testJdbcClient();
+    var client = db().getJdbcClient();
 
     client.sql("create table test as (select * from 'src/test/resources/adsb.csv')").update();
 
