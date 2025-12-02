@@ -1,8 +1,10 @@
 package bx.util;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class Config {
 
@@ -27,6 +29,15 @@ public class Config {
 
   public static Config get() {
     return instance;
+  }
+
+  public Set<String> getKeys() {
+    Set<String> allKeys = Sets.newHashSet();
+
+    allKeys.addAll(System.getenv().keySet());
+    allKeys.addAll(overrides.keySet());
+
+    return Set.copyOf(allKeys);
   }
 
   public Optional<String> get(String key) {
