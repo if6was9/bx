@@ -45,7 +45,7 @@ public abstract class BxTest {
   }
 
   @BeforeEach
-  private final void setup() {
+  final void setup() {
 
     try {
       var supplierField = Db.class.getDeclaredField("supplier");
@@ -63,7 +63,7 @@ public abstract class BxTest {
   }
 
   @AfterEach
-  private final void bqTestCleanup() {
+  final void bqTestCleanup() {
 
     testDb = null;
     try {
