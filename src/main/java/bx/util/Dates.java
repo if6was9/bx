@@ -68,7 +68,7 @@ public class Dates {
     return asLocalDate(s, false);
   }
 
-  public static Optional<LocalDate> asLocalDate(String s, boolean reentrant) {
+  private static Optional<LocalDate> asLocalDate(String s, boolean reentrant) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
@@ -115,7 +115,7 @@ public class Dates {
     return asLocalDateTime(s, false);
   }
 
-  public static Optional<LocalDateTime> asLocalDateTime(String s, boolean reentrant) {
+  private static Optional<LocalDateTime> asLocalDateTime(String s, boolean reentrant) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
@@ -164,7 +164,7 @@ public class Dates {
     return Optional.of(dt.withZoneSameInstant(zone));
   }
 
-  public static Optional<ZonedDateTime> asZonedDateTime(String s, boolean reentrant) {
+  private static Optional<ZonedDateTime> asZonedDateTime(String s, boolean reentrant) {
     return asZonedDateTime(s, (ZoneId) null, reentrant);
   }
 
@@ -172,7 +172,7 @@ public class Dates {
     return asZonedDateTime(s, zone, false);
   }
 
-  public static Optional<ZonedDateTime> asZonedDateTime(String s, ZoneId zone, boolean reentrant) {
+  private static Optional<ZonedDateTime> asZonedDateTime(String s, ZoneId zone, boolean reentrant) {
 
     if (S.isBlank(s)) {
       return Optional.empty();
