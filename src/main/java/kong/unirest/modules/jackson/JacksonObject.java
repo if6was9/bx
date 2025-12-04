@@ -22,12 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package kong.unirest.modules.jackson;
-
-import tools.jackson.databind.node.NullNode;
-import tools.jackson.databind.node.ObjectNode;
-import kong.unirest.core.json.JsonEngine;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -37,87 +32,92 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import kong.unirest.core.json.JsonEngine;
+import tools.jackson.databind.node.NullNode;
+import tools.jackson.databind.node.ObjectNode;
 
 class JacksonObject extends JacksonElement<ObjectNode> implements JsonEngine.Object {
 
-    public  JacksonObject(ObjectNode element) {
-        super(element);
-    }
+  public JacksonObject(ObjectNode element) {
+    super(element);
+  }
 
-    @Override
-    public int size() {
-        return element.size();
-    }
+  @Override
+  public int size() {
+    return element.size();
+  }
 
-    @Override
-    public boolean has(String key) {
-        return element.has(key);
-    }
+  @Override
+  public boolean has(String key) {
+    return element.has(key);
+  }
 
-    @Override
-    public JsonEngine.Element get(String key) {
-        return wrap(element.get(key));
-    }
+  @Override
+  public JsonEngine.Element get(String key) {
+    return wrap(element.get(key));
+  }
 
-    @Override
-    public void add(String key, JsonEngine.Element value) {
-        element.set(key, value.getEngineElement());
-    }
+  @Override
+  public void add(String key, JsonEngine.Element value) {
+    element.set(key, value.getEngineElement());
+  }
 
-    @Override
-    public void addProperty(String key, Boolean value) {
-        element.put(key, value);
-    }
+  @Override
+  public void addProperty(String key, Boolean value) {
+    element.put(key, value);
+  }
 
-    @Override
-    public void addProperty(String key, String value) {
-        element.put(key, value);
-    }
+  @Override
+  public void addProperty(String key, String value) {
+    element.put(key, value);
+  }
 
-    @Override
-    public void addProperty(String key, Number number) {
-        if(number instanceof Integer){
-            element.put(key, (Integer) number);
-        } else if (number instanceof Double){
-            element.put(key, (Double)number);
-        } else if (number instanceof BigInteger) {
-            element.put(key, (BigInteger) number);
-        } else if (number instanceof Float){
-            element.put(key, (Float)number);
-        } else if(number instanceof BigDecimal) {
-            element.put(key, (BigDecimal) number);
-        } else if (number instanceof Long) {
-            element.put(key, (Long)number);
-        }
+  @Override
+  public void addProperty(String key, Number number) {
+    if (number instanceof Integer) {
+      element.put(key, (Integer) number);
+    } else if (number instanceof Double) {
+      element.put(key, (Double) number);
+    } else if (number instanceof BigInteger) {
+      element.put(key, (BigInteger) number);
+    } else if (number instanceof Float) {
+      element.put(key, (Float) number);
+    } else if (number instanceof BigDecimal) {
+      element.put(key, (BigDecimal) number);
+    } else if (number instanceof Long) {
+      element.put(key, (Long) number);
     }
+  }
 
-    @Override
-    public void addProperty(String key, JsonEngine.Element value) {
-        element.set(key, value.getEngineElement());
+  @Override
+  public void addProperty(String key, JsonEngine.Element value) {
+    element.set(key, value.getEngineElement());
+  }
+
+  @Override
+  public void remove(String key) {
+    element.remove(key);
+  }
+
+  @Override
+  public <E extends Enum> void add(String key, E enumValue) {
+    if (enumValue == null) {
+      element.set(key, NullNode.getInstance());
+    } else {
+      element.put(key, enumValue.name());
     }
+  }
 
-    @Override
-    public void remove(String key) {
-        element.remove(key);
-    }
-
-    @Override
-    public <E extends Enum> void add(String key, E enumValue) {
-        if(enumValue == null){
-            element.set(key, NullNode.getInstance());
-        } else {
-            element.put(key, enumValue.name());
-        }
-    }
-
-    @Override
-    public Set<String> keySet() {
-        return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(
-                        element.properties().stream().map(Map.Entry::getKey).collect(Collectors.toSet()).iterator(),
-                        Spliterator.ORDERED)
-                , false)
-                .collect(Collectors.toSet());
-
-    }
+  @Override
+  public Set<String> keySet() {
+    return StreamSupport.stream(
+            Spliterators.spliteratorUnknownSize(
+                element.properties().stream()
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet())
+                    .iterator(),
+                Spliterator.ORDERED),
+            false)
+        .collect(Collectors.toSet());
+  }
 }

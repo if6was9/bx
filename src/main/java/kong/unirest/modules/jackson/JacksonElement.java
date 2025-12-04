@@ -22,183 +22,183 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package kong.unirest.modules.jackson;
 
-
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Objects;
+import kong.unirest.core.json.*;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.exc.JsonNodeException;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.node.ValueNode;
-import kong.unirest.core.json.*;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Objects;
 
 class JacksonElement<T extends JsonNode> implements JsonEngine.Element {
-    protected T element;
+  protected T element;
 
-    JacksonElement(T element){
-        this.element = element;
+  JacksonElement(T element) {
+    this.element = element;
+  }
+
+  static JsonEngine.Element wrap(JsonNode node) {
+    if (node == null || node.isNull()) {
+      return new JacksonPrimitive(NullNode.getInstance());
+    } else if (node.isArray()) {
+      return new JacksonArray((ArrayNode) node);
+    } else if (node.isObject()) {
+      return new JacksonObject((ObjectNode) node);
+    } else if (node.isValueNode()) {
+      return new JacksonPrimitive((ValueNode) node);
+    }
+    return new JacksonPrimitive(NullNode.getInstance());
+  }
+
+  @Override
+  public JsonEngine.Object getAsJsonObject() {
+    if (element.isObject()) {
+      return new JacksonObject((ObjectNode) element);
+    }
+    throw new IllegalStateException("Not an object");
+  }
+
+  @Override
+  public boolean isJsonNull() {
+    return element instanceof NullNode;
+  }
+
+  @Override
+  public JsonEngine.Primitive getAsJsonPrimitive() {
+    return new JacksonPrimitive((ValueNode) element);
+  }
+
+  @Override
+  public JsonEngine.Array getAsJsonArray() {
+    if (!element.isArray()) {
+      throw new IllegalStateException("Not an Array");
+    }
+    return new JacksonArray((ArrayNode) element);
+  }
+
+  @Override
+  public float getAsFloat() {
+    if (!element.isFloat()) {
+      throw new NumberFormatException("not a float");
+    }
+    return element.floatValue();
+  }
+
+  @Override
+  public double getAsDouble() {
+    if (!element.isNumber()) {
+      throw new NumberFormatException("not a double");
+    }
+    return element.asDouble();
+  }
+
+  @Override
+  public String getAsString() {
+    return element.asString();
+  }
+
+  @Override
+  public long getAsLong() {
+    if (!element.isLong() && !element.isIntegralNumber()) {
+      throw new NumberFormatException("not a long");
+    }
+    return element.asLong();
+  }
+
+  @Override
+  public int getAsInt() {
+    if (!element.isIntegralNumber()) {
+      throw new NumberFormatException("Not a number");
     }
 
-    static JsonEngine.Element wrap(JsonNode node) {
-        if(node == null || node.isNull()){
-            return new JacksonPrimitive(NullNode.getInstance());
-        } else if(node.isArray()){
-            return new JacksonArray((ArrayNode) node);
-        } else if(node.isObject()){
-            return new JacksonObject((ObjectNode)node);
-        } else if (node.isValueNode()){
-            return new JacksonPrimitive((ValueNode)node);
-        }
-        return new JacksonPrimitive(NullNode.getInstance());
-    }
+    // The following is a workaround to have the unirest-jackson-module work against 4.6.0
+    // There are some edge cases in how int/long are mapped
+    // This code will be gone once 4.7 is released
+    try {
+      return element.asInt();
+    } catch (JsonNodeException e) {
 
-    @Override
-    public JsonEngine.Object getAsJsonObject() {
-        if(element.isObject()) {
-            return new JacksonObject((ObjectNode) element);
-        }
-        throw new IllegalStateException("Not an object");
-    }
+      // Exception looks like:
+      // tools.jackson.databind.exc.JsonNodeException: 'LongNode' method `asInt()` cannot convert
+      // value 9223372036854775807 to `int`: value not in 32-bit `int` range
 
-    @Override
-    public boolean isJsonNull() {
-        return element instanceof NullNode;
-    }
+      long longVal = element.asLong();
+      if (longVal < 0) {
 
-    @Override
-    public JsonEngine.Primitive getAsJsonPrimitive() {
-        return new JacksonPrimitive((ValueNode) element);
+        return Integer.MIN_VALUE;
+      }
     }
+    return Integer.MAX_VALUE;
+  }
 
-    @Override
-    public JsonEngine.Array getAsJsonArray() {
-        if(!element.isArray()){
-            throw new IllegalStateException("Not an Array");
-        }
-        return new JacksonArray((ArrayNode)element);
-    }
+  @Override
+  public boolean getAsBoolean() {
+    return element.asBoolean();
+  }
 
-    @Override
-    public float getAsFloat() {
-        if(!element.isFloat()){
-            throw new NumberFormatException("not a float");
-        }
-        return element.floatValue();
+  @Override
+  public BigInteger getAsBigInteger() {
+    if (!element.isIntegralNumber()) {
+      throw new NumberFormatException("Not a integer");
     }
+    return element.bigIntegerValue();
+  }
 
-    @Override
-    public double getAsDouble() {
-        if(!element.isNumber()){
-            throw new NumberFormatException("not a double");
-        }
-        return element.asDouble();
+  @Override
+  public BigDecimal getAsBigDecimal() {
+    if (!element.isNumber()) {
+      throw new NumberFormatException("Not a decimal");
     }
+    return element.decimalValue();
+  }
 
-    @Override
-    public String getAsString() {
-        return element.asString();
+  @Override
+  public JsonEngine.Primitive getAsPrimitive() {
+    if (element.isValueNode()) {
+      return new JacksonPrimitive((ValueNode) element);
     }
+    throw new JSONException("Not a value type");
+  }
 
-    @Override
-    public long getAsLong() {
-        if(!element.isLong() && !element.isIntegralNumber()){
-            throw new NumberFormatException("not a long");
-        }
-        return element.asLong();
-    }
+  @Override
+  public boolean isJsonArray() {
+    return element.isArray();
+  }
 
-    @Override
-    public int getAsInt() {
-        if(!element.isIntegralNumber()) {
-            throw new NumberFormatException("Not a number");
-        }
-        
-        // The following is a workaround to have the unirest-jackson-module work against 4.6.0
-        // There are some edge cases in how int/long are mapped 
-        // This code will be gone once 4.7 is released
-        try {
-        	return element.asInt();
-        }
-        catch (JsonNodeException e) {
-        	
-        	// Exception looks like:
-        	// tools.jackson.databind.exc.JsonNodeException: 'LongNode' method `asInt()` cannot convert value 9223372036854775807 to `int`: value not in 32-bit `int` range
-        
-        	long longVal = element.asLong();
-        	if (longVal<0) {
-        	
-        		return Integer.MIN_VALUE;
-        	}
-        	    	
-        }
-        return Integer.MAX_VALUE;
-    }
+  @Override
+  public boolean isJsonPrimitive() {
+    return element.isValueNode();
+  }
 
-    @Override
-    public boolean getAsBoolean() {
-        return element.asBoolean();
-    }
+  @Override
+  public boolean isJsonObject() {
+    return element.isObject();
+  }
 
-    @Override
-    public BigInteger getAsBigInteger() {
-        if(!element.isIntegralNumber()) {
-            throw new NumberFormatException("Not a integer");
-        }
-        return element.bigIntegerValue();
-    }
+  @Override
+  public <T> T getEngineElement() {
+    return (T) element;
+  }
 
-    @Override
-    public BigDecimal getAsBigDecimal() {
-        if(!element.isNumber()){
-            throw new NumberFormatException("Not a decimal");
-        }
-        return element.decimalValue();
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    JacksonElement<?> that = (JacksonElement<?>) o;
+    return Objects.equals(element, that.element);
+  }
 
-    @Override
-    public JsonEngine.Primitive getAsPrimitive() {
-        if(element.isValueNode()){
-            return new JacksonPrimitive((ValueNode) element);
-        }
-        throw new JSONException("Not a value type");
-    }
-
-    @Override
-    public boolean isJsonArray() {
-        return element.isArray();
-    }
-
-    @Override
-    public boolean isJsonPrimitive() {
-        return element.isValueNode();
-    }
-
-    @Override
-    public boolean isJsonObject() {
-        return element.isObject();
-    }
-
-    @Override
-    public <T> T getEngineElement() {
-        return (T)element;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {return true;}
-        if (o == null || getClass() != o.getClass()) {return false;}
-        JacksonElement<?> that = (JacksonElement<?>) o;
-        return Objects.equals(element, that.element);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(element);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(element);
+  }
 }

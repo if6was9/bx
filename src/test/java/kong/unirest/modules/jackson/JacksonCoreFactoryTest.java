@@ -22,30 +22,26 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package kong.unirest.modules.jackson;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import kong.unirest.core.json.CoreFactory;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class JacksonCoreFactoryTest {
-    @Test
-    void canLoadByServiceLocator() {
-        assertThat(CoreFactory.findEngineWithServiceLocator())
-                .isInstanceOf(JacksonEngine.class);
-    }
+  @Test
+  void canLoadByServiceLocator() {
+    assertThat(CoreFactory.findEngineWithServiceLocator()).isInstanceOf(JacksonEngine.class);
+  }
 
-    @Test
-    void canLoadByKnownClassNames() {
-        assertThat(CoreFactory.findEngineWithClassLoader())
-                .isInstanceOf(JacksonEngine.class);
-    }
+  @Test
+  void canLoadByKnownClassNames() {
+    assertThat(CoreFactory.findEngineWithClassLoader()).isInstanceOf(JacksonEngine.class);
+  }
 
-    @Test
-    void willLoadOneWaOrAnother() {
-        assertThat(CoreFactory.findEngine())
-                .isInstanceOf(JacksonEngine.class);
-    }
+  @Test
+  void willLoadOneWaOrAnother() {
+    assertThat(CoreFactory.findEngine()).isInstanceOf(JacksonEngine.class);
+  }
 }

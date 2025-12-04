@@ -1,9 +1,8 @@
 package bx.util;
 
+import kong.unirest.core.Unirest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import kong.unirest.core.Unirest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -16,9 +15,8 @@ public class UnirestTest {
     var r =
         Unirest.get("https://accounts.google.com/.well-known/openid-configuration")
             .asObject(JsonNode.class);
-  //  Assertions.assertThat(r.getBody()).isNull();
+    //  Assertions.assertThat(r.getBody()).isNull();
 
-  
     r =
         Unirest.get("https://accounts.google.com/.well-known/openid-configuration")
             .asObject(JsonNode.class);
@@ -30,9 +28,5 @@ public class UnirestTest {
             .asObject(ObjectNode.class);
     Assertions.assertThat(r.getBody().path("issuer").asString())
         .isEqualTo("https://accounts.google.com");
-
- 
-
-   
   }
 }

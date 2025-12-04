@@ -22,24 +22,23 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package kong.unirest.modules.jackson;
 
-import tools.jackson.databind.node.ValueNode;
 import kong.unirest.core.json.JsonEngine;
+import tools.jackson.databind.node.ValueNode;
 
 class JacksonPrimitive extends JacksonElement<ValueNode> implements JsonEngine.Primitive {
-    public JacksonPrimitive(ValueNode element) {
-        super(element);
-    }
+  public JacksonPrimitive(ValueNode element) {
+    super(element);
+  }
 
-    @Override
-    public boolean isBoolean() {
-        return element.isBoolean();
-    }
+  @Override
+  public boolean isBoolean() {
+    return element.isBoolean();
+  }
 
-    @Override
-    public boolean isNumber() {
-        return element.isNumber();
-    }
+  @Override
+  public boolean isNumber() {
+    return element.isNumber();
+  }
 }

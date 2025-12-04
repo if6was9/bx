@@ -49,86 +49,94 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 package kong.unirest.modules.jackson;
 
-import tools.jackson.databind.DeserializationFeature;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
 import kong.unirest.core.GenericType;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class JacksonObjectMapperTest {
-    private JacksonObjectMapper om = new JacksonObjectMapper();
+  private JacksonObjectMapper om = new JacksonObjectMapper();
 
-    @Test
-    void canWrite() throws JSONException {
-        var test = new TestMe("foo", 42, new TestMe("bar", 666, null));
+  @Test
+  void canWrite() throws JSONException {
+    var test = new TestMe("foo", 42, new TestMe("bar", 666, null));
 
-        String json = om.writeValue(test);
+    String json = om.writeValue(test);
 
-        JSONAssert.assertEquals(
-                "{\"text\":\"foo\",\"nmbr\":42,\"another\":{\"text\":\"bar\",\"nmbr\":666,\"another\":null}}"
-                , json
-                , true
-        );
+    JSONAssert.assertEquals(
+        "{\"text\":\"foo\",\"nmbr\":42,\"another\":{\"text\":\"bar\",\"nmbr\":666,\"another\":null}}",
+        json,
+        true);
+  }
+
+  @Test
+  void canRead() {
+    var test =
+        om.readValue(
+            "{\"text\":\"foo\",\"nmbr\":42,\"another\":{\"text\":\"bar\",\"nmbr\":666,\"another\":null}}",
+            TestMe.class);
+
+    assertEquals("foo", test.text);
+    assertEquals(42, test.nmbr);
+    assertEquals("bar", test.another.text);
+    assertEquals(666, test.another.nmbr);
+    assertNull(test.another.another);
+  }
+
+  @Test
+  void canReadGenerics() {
+    var testList =
+        om.readValue(
+            "[{\"text\":\"foo\",\"nmbr\":42,\"another\":{\"text\":\"bar\",\"nmbr\":666,\"another\":null}}]",
+            new GenericType<List<TestMe>>() {});
+
+    var test = testList.get(0);
+
+    assertEquals("foo", test.text);
+    assertEquals(42, test.nmbr);
+    assertEquals("bar", test.another.text);
+    assertEquals(666, test.another.nmbr);
+    assertNull(test.another.another);
+  }
+
+  @Test
+  void configSoItFails() {
+    final JsonMapper jom =
+        JsonMapper.builder().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+    JacksonObjectMapper j = new JacksonObjectMapper(jom);
+
+    try {
+      j.readValue("{\"something\": [1,2,3] }", TestMe.class);
+      fail("Should have thrown");
+    } catch (Exception e) {
+      assertEquals(
+          "tools.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized property"
+              + " \"something\" (class"
+              + " kong.unirest.modules.jackson.JacksonObjectMapperTest$TestMe), not marked as"
+              + " ignorable (3 known properties: \"another\", \"nmbr\", \"text\")\n"
+              + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled);"
+              + " byte offset: #UNKNOWN] (through reference chain:"
+              + " kong.unirest.modules.jackson.JacksonObjectMapperTest$TestMe[\"something\"])",
+          e.getMessage());
     }
+  }
 
-    @Test
-    void canRead(){
-        var test = om.readValue("{\"text\":\"foo\",\"nmbr\":42,\"another\":{\"text\":\"bar\",\"nmbr\":666,\"another\":null}}",
-                TestMe.class);
+  public static class TestMe {
+    public String text;
+    public int nmbr;
+    public TestMe another;
 
-        assertEquals("foo", test.text);
-        assertEquals(42, test.nmbr);
-        assertEquals("bar", test.another.text);
-        assertEquals(666, test.another.nmbr);
-        assertNull(test.another.another);
+    public TestMe() {}
+
+    public TestMe(String text, Integer nmbr, TestMe another) {
+      this.text = text;
+      this.nmbr = nmbr;
+      this.another = another;
     }
-
-    @Test
-    void canReadGenerics(){
-        var testList = om.readValue("[{\"text\":\"foo\",\"nmbr\":42,\"another\":{\"text\":\"bar\",\"nmbr\":666,\"another\":null}}]",
-                new GenericType<List<TestMe>>(){});
-
-        var test = testList.get(0);
-
-        assertEquals("foo", test.text);
-        assertEquals(42, test.nmbr);
-        assertEquals("bar", test.another.text);
-        assertEquals(666, test.another.nmbr);
-        assertNull(test.another.another);
-    }
-
-    @Test
-    void configSoItFails() {
-        final JsonMapper jom = JsonMapper.builder()
-                .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .build();
-        JacksonObjectMapper j = new JacksonObjectMapper(jom);
-
-        try {
-            j.readValue("{\"something\": [1,2,3] }", TestMe.class);
-            fail("Should have thrown");
-        } catch (Exception e) {
-            assertEquals("tools.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized property \"something\" (class kong.unirest.modules.jackson.JacksonObjectMapperTest$TestMe), not marked as ignorable (3 known properties: \"another\", \"nmbr\", \"text\")\n" +
-                    " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); byte offset: #UNKNOWN] (through reference chain: kong.unirest.modules.jackson.JacksonObjectMapperTest$TestMe[\"something\"])", e.getMessage());
-        }
-    }
-
-    public static class TestMe {
-        public String text;
-        public int nmbr;
-        public TestMe another;
-
-        public TestMe(){}
-
-        public TestMe(String text, Integer nmbr, TestMe another) {
-            this.text = text;
-            this.nmbr = nmbr;
-            this.another = another;
-        }
-    }
+  }
 }
