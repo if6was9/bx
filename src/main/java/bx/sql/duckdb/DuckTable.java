@@ -1,5 +1,11 @@
 package bx.sql.duckdb;
 
+import bx.sql.DbException;
+import bx.sql.PrettyQuery;
+import bx.util.S;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -9,22 +15,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.sql.DataSource;
-
 import org.duckdb.DuckDBAppender;
 import org.duckdb.DuckDBConnection;
 import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
-import bx.sql.DbException;
-import bx.sql.PrettyQuery;
-import bx.util.S;
 
 public class DuckTable {
 

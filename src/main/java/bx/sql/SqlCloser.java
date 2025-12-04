@@ -1,16 +1,13 @@
 package bx.sql;
 
+import bx.util.BxException;
+import com.google.common.collect.Lists;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-
 import org.slf4j.Logger;
-
-import com.google.common.collect.Lists;
-
-import bx.util.BxException;
 
 public class SqlCloser implements AutoCloseable {
 

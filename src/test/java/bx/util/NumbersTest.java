@@ -48,8 +48,12 @@ public class NumbersTest {
         // This is flaky due to BigDecimal implementation craziness
         Assertions.assertThat(lastNum.compareTo(thisNum))
             .withFailMessage(
-                "expecting %s <= %s but compare was %s",
-                lastNum, thisNum, lastNum.compareTo(thisNum))
+                "expecting %s (%s) <= %s (%s) but compare was %s",
+                lastNum,
+                lastNum.getClass(),
+                thisNum,
+                thisNum.getClass(),
+                lastNum.compareTo(thisNum))
             .isLessThanOrEqualTo(0);
 
         lastNum = thisNum;

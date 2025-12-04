@@ -1,16 +1,13 @@
 package bx.sql;
 
+import bx.util.BxException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.Function;
-
 import javax.sql.DataSource;
-
 import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
-
-import bx.util.BxException;
 
 public class PrettyQuery {
 

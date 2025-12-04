@@ -1,16 +1,14 @@
 package bx.util;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Suppliers;
+import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Supplier;
-
 import org.slf4j.Logger;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Suppliers;
-import com.google.common.io.Files;
 
 public class RuntimeEnvironment {
 

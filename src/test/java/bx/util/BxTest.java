@@ -1,26 +1,21 @@
 package bx.util;
 
+import bx.sql.Db;
+import bx.sql.duckdb.DuckDataSource;
+import bx.sql.duckdb.DuckTable;
+import com.google.common.base.Suppliers;
 import java.util.List;
 import java.util.function.Supplier;
-
 import javax.sql.DataSource;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Suppliers;
-
-import bx.sql.Db;
-import bx.sql.duckdb.DuckDataSource;
-import bx.sql.duckdb.DuckTable;
-
 public abstract class BxTest {
 
-
   Logger logger = LoggerFactory.getLogger(BxTest.class);
-  
+
   private List<java.lang.AutoCloseable> deferredAutoCloseable = new java.util.ArrayList<>();
 
   DuckDataSource testDataSource;
@@ -80,7 +75,7 @@ public abstract class BxTest {
       for (AutoCloseable c : deferredAutoCloseable) {
         try {
           logger.atInfo().log("closing {}", c);
-          
+
           c.close();
         } catch (Exception e) {
           logger.atWarn().setCause(e).log("problem closing {}", c);
