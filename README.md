@@ -12,11 +12,12 @@ BX is a collection of frequently-used utility code.  It integrates the following
 * [DuckDB](https://duckdb.org/)
 
 
-## DuckDB Support
+# DuckDB Support
 
 DuckDB is a fantastic embedded analytics database. In addition to analytics queries, it's very useful
 for CSV import/export and in-memory data transformation.
 
+## Usage
 ```java
 // Create a DataSource to access an in-memory DuckDB instance
 var ds = DuckDataSource.createInMemory();
