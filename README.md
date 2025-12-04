@@ -18,6 +18,9 @@ DuckDB is a fantastic embedded analytics database. In addition to analytics quer
 for CSV import/export and in-memory data transformation.
 
 ## Usage
+
+### Obtaining DuckDB DataSource
+
 ```java
 // Create a DataSource to access an in-memory DuckDB instance
 var ds = DuckDataSource.createInMemory();
@@ -40,3 +43,25 @@ To obtain a file-based DuckDB DataSource:
 ```java
 var ds = DuckDataSource.create("jdbc:duckdb:./mydb.duckdb");
 ```
+
+## DuckTable
+
+There is a class, DuckTable that provides many convenience methods for working with DuckDB:
+
+```java
+
+var table = DuckTable.of(dataSource,"employee");
+
+
+// count rows
+table.rowCount();
+
+// rename 'employee' table to 'worker'
+table.rename("employee","worker");
+
+// rename a column
+table.rename("id","employee_id");
+
+// drop a column
+table.dropColumn("last_name");
+
