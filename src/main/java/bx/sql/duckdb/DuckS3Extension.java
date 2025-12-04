@@ -1,0 +1,52 @@
+package bx.sql.duckdb;
+
+import com.google.common.flogger.FluentLogger;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+public class DuckS3Extension {
+
+  FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  JdbcClient client;
+
+  DuckS3Extension(JdbcClient db) {
+    super();
+    this.client = db;
+  }
+
+  public static DuckS3Extension load(JdbcClient c) {
+    return new DuckS3Extension(c).loadExtension();
+  }
+
+  private DuckS3Extension loadExtension() {
+
+    client.sql("INSTALL aws").update();
+    client.sql("LOAD aws").update();
+
+    return this;
+  }
+
+  public DuckS3Extension useCredentialChain() {
+
+    try {
+      String sql =
+          """
+          CREATE SECRET ducktape_aws_secret (
+              TYPE S3,
+              PROVIDER CREDENTIAL_CHAIN
+          )
+          """;
+
+      client.sql(sql).update();
+
+    } catch (DataAccessException e) {
+      if (e.getMessage().toLowerCase().contains("already exists")) {
+        logger.atFiner().log("credential chain already loaded");
+        return this;
+      }
+      throw e;
+    }
+    return this;
+  }
+}

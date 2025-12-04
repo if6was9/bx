@@ -31,7 +31,11 @@ class DuckConnectionWrapper implements Connection {
 
   @Override
   public <T> T unwrap(Class<T> iface) throws SQLException {
-    return (T) iface;
+    if (iface.isAssignableFrom(conn.getClass())) {
+      return (T) conn;
+    }
+
+    return conn.unwrap(iface);
   }
 
   @Override

@@ -6,7 +6,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import javax.sql.DataSource;
 
-public class DuckDb {
+public class DuckFactory {
+
+  private DuckFactory() {}
 
   public static DataSource create(String url) {
     try {

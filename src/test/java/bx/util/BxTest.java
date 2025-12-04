@@ -2,6 +2,7 @@ package bx.util;
 
 import bx.sql.Db;
 import bx.sql.duckdb.DuckDataSource;
+import bx.sql.duckdb.DuckTable;
 import com.google.common.base.Suppliers;
 import com.google.common.flogger.FluentLogger;
 import java.util.List;
@@ -23,7 +24,7 @@ public abstract class BxTest {
     deferredAutoCloseable.add(c);
   }
 
-  public void loadAdsbTable(String name) {
+  public DuckTable loadAdsbTable(String name) {
 
     db().getJdbcClient()
         .sql(
@@ -31,6 +32,8 @@ public abstract class BxTest {
                 + name
                 + " as (select * from 'src/test/resources/adsb.csv' order by ts)")
         .update();
+
+    return DuckTable.of(db().getDataSource(), name);
   }
 
   public Db db() {
