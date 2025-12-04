@@ -116,17 +116,20 @@ c.sql("create table book( name varchar(30), author varchar(30))").update();
 Add two more books using DuckDB's appender interface:
 ```java
 var appender = t.createAppender();
-		appender.beginRow();
-		appender.append("Thus Spoke Zarathustra");
-		appender.append("Friedrich Nietzsche");
-		appender.endRow();
-		appender.beginRow();
-		appender.append("As I Lay Dying");
-		appender.append("William Faulkner");
-		appender.endRow();
-		appender.close();
+
+appender.beginRow();
+appender.append("Thus Spoke Zarathustra");
+appender.append("Friedrich Nietzsche");
+appender.endRow();
+
+appender.beginRow();
+appender.append("As I Lay Dying");
+appender.append("William Faulkner");
+appender.endRow();
+
+appender.close();
 		
-		t.selectPretty(System.out);
+t.selectPretty(System.out);
 ```
 
 Output:
