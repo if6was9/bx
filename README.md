@@ -25,3 +25,16 @@ var ds = DuckDataSource.createInMemory();
 // Use Spring JDBC to access the database
 var client = JdbcClient.create(ds);
 ```
+
+In the example above, the DataSource is special in that it only contains a single connection and the connection
+is protected from being closed. This enables it to be used in a standard JDBC pool without the databse being destroyed
+after each operation.
+
+If you would like to close the databse, the DataSource that is returned has a `close()` method that can be called.
+
+
+
+```java
+// To obtain a file-based DuckDB DataSource:
+var ds = DuckDataSource.create("jdbc:duckdb:./mydb.duckdb");
+```
