@@ -12,7 +12,7 @@ public class SpringJdbcTest extends BxTest {
     loadAdsbTable("adsb");
 
     db().getJdbcClient()
-        .sql("select * from adsb")
+        .sql("select * from adsb limit 5")
         .query(new ObjectNodeRowMapper())
         .list()
         .forEach(

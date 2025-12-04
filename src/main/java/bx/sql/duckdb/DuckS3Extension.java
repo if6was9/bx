@@ -1,12 +1,12 @@
 package bx.sql.duckdb;
 
-import com.google.common.flogger.FluentLogger;
+import org.slf4j.Logger;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 public class DuckS3Extension {
 
-  FluentLogger logger = FluentLogger.forEnclosingClass();
+  Logger logger = bx.util.Slogger.forEnclosingClass();
 
   JdbcClient client;
 
@@ -42,7 +42,7 @@ public class DuckS3Extension {
 
     } catch (DataAccessException e) {
       if (e.getMessage().toLowerCase().contains("already exists")) {
-        logger.atFiner().log("credential chain already loaded");
+        logger.atDebug().log("credential chain already loaded");
         return this;
       }
       throw e;

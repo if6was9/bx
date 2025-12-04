@@ -1,17 +1,20 @@
 package bx.sql;
 
-import bx.util.BxException;
-import com.google.common.collect.Lists;
-import com.google.common.flogger.FluentLogger;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import org.slf4j.Logger;
+
+import com.google.common.collect.Lists;
+
+import bx.util.BxException;
+
 public class SqlCloser implements AutoCloseable {
 
-  static FluentLogger logger = FluentLogger.forEnclosingClass();
+  static Logger logger = bx.util.Slogger.forEnclosingClass();
 
   List<Connection> connections = Lists.newArrayList();
   List<Statement> statements = Lists.newArrayList();
@@ -27,7 +30,7 @@ public class SqlCloser implements AutoCloseable {
 
     for (ResultSet rs : resultSets.reversed()) {
       try {
-        logger.atFinest().log("closing %s", rs);
+        logger.atDebug().log("closing %s", rs);
         rs.close();
       } catch (RuntimeException | SQLException e) {
         exceptions.add(e);
@@ -36,7 +39,7 @@ public class SqlCloser implements AutoCloseable {
 
     for (Statement st : statements.reversed()) {
       try {
-        logger.atFinest().log("closing %s", st);
+        logger.atDebug().log("closing {}", st);
         st.close();
       } catch (RuntimeException | SQLException e) {
         exceptions.add(e);
@@ -50,7 +53,7 @@ public class SqlCloser implements AutoCloseable {
           // special case...DuckDB connections don't want to be closed
         } else {
 
-          logger.atFinest().log("closing %s", c);
+          logger.atTrace().log("closing %s", c);
           c.close();
         }
 
@@ -61,7 +64,7 @@ public class SqlCloser implements AutoCloseable {
 
     exceptions.forEach(
         t -> {
-          logger.atWarning().withCause(t).log("problem closing resource");
+          logger.atDebug().setCause(t).log("problem closing resource");
         });
 
     if (!exceptions.isEmpty()) {

@@ -1,15 +1,17 @@
 package bx.sql.mapper;
 
-import bx.sql.Results;
-import bx.util.Json;
-import com.google.common.base.Preconditions;
-import com.google.common.flogger.FluentLogger;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+
+import com.google.common.base.Preconditions;
+
+import bx.sql.Results;
+import bx.util.Json;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeType;
 import tools.jackson.databind.node.ObjectNode;
@@ -20,7 +22,7 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
   Results results;
   ResultSetMetaData md;
 
-  static FluentLogger logger = FluentLogger.forEnclosingClass();
+  static Logger logger = bx.util.Slogger.forEnclosingClass();
   JsonNodeType targetType = JsonNodeType.OBJECT;
 
   ArrayNode arrayNodeTarget;
@@ -82,7 +84,7 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
           setString(i, name, results.getString(name).orElse(null));
           break;
         default:
-          logger.atWarning().atMostEvery(5, TimeUnit.SECONDS).log(
+          logger.atWarn().log(
               "no type conversion for name=%s type=%s(%s) (relying on string)",
               name, type, md.getColumnTypeName(i));
           setString(i, name, results.getString(name).orElse(null));

@@ -1,14 +1,16 @@
 package bx.sql.duckdb;
 
-import bx.util.BxTest;
-import com.google.common.flogger.FluentLogger;
 import java.sql.SQLException;
+
 import org.assertj.core.api.Assertions;
 import org.duckdb.DuckDBAppender;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+
+import bx.util.BxTest;
 
 public class DuckTableTest extends BxTest {
-  FluentLogger logger = FluentLogger.forEnclosingClass();
+   static Logger logger = bx.util.Slogger.forEnclosingClass();
 
   @Test
   public void testExists() {

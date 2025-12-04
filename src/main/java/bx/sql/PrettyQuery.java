@@ -1,13 +1,16 @@
 package bx.sql;
 
-import bx.util.BxException;
-import com.google.common.flogger.FluentLogger.Api;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.Function;
+
 import javax.sql.DataSource;
+
+import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
+
+import bx.util.BxException;
 
 public class PrettyQuery {
 
@@ -41,17 +44,17 @@ public class PrettyQuery {
     return spec.query(new ResultSetTextFormatter());
   }
 
-  public void select(String sql, Api out) {
+  public void select(String sql, LoggingEventBuilder out) {
     select(c -> c.sql(sql), out);
   }
 
-  public void select(Function<JdbcClient, StatementSpec> specFunction, Api api) {
+  public void select(Function<JdbcClient, StatementSpec> specFunction, LoggingEventBuilder api) {
 
     var spec = specFunction.apply(jdbc);
 
     String output = spec.query(new ResultSetTextFormatter());
 
-    api.log("query%s%s", System.lineSeparator(), output);
+    api.log("query{}{}", System.lineSeparator(), output);
   }
 
   public void select(String sql, OutputStream out) {

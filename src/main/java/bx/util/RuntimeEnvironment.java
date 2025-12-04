@@ -1,18 +1,20 @@
 package bx.util;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Suppliers;
-import com.google.common.flogger.FluentLogger;
-import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Suppliers;
+import com.google.common.io.Files;
+
 public class RuntimeEnvironment {
 
-  static FluentLogger logger = FluentLogger.forEnclosingClass();
+  static Logger logger = Slogger.forEnclosingClass();
   public static final RuntimeEnvironment instance = new RuntimeEnvironment();
 
   Supplier<Boolean> kubeSupplier =
@@ -39,23 +41,23 @@ public class RuntimeEnvironment {
 
               logger.atInfo().log("/proc/1/cgroup: <<%s>>", s);
               if (s.equalsIgnoreCase("0::/")) {
-                logger.atFine().log("inside container!");
+                logger.atDebug().log("inside container!");
                 return true;
               }
             } catch (FileNotFoundException e) {
               // ignore
             } catch (IOException | RuntimeException e) {
               // ignore
-              logger.atFine().withCause(e).log("exception (can be ignored)");
+              logger.atDebug().setCause(e).log("exception (can be ignored)");
             }
 
             try {
               if (new File("/.dockerenv").exists()) {
-                logger.atFine().log("found /.dockerenv");
+                logger.atDebug().log("found /.dockerenv");
                 return true;
               }
             } catch (Exception e) {
-              logger.atFine().withCause(e).log("exception (can be ignored)");
+              logger.atDebug().setCause(e).log("exception (can be ignored)");
             }
 
             return false;
@@ -71,7 +73,7 @@ public class RuntimeEnvironment {
             } catch (ClassNotFoundException e) {
               // ignore
             } catch (Exception e) {
-              logger.atFine().withCause(e).log("exception (can be ignored)");
+              logger.atDebug().setCause(e).log("exception (can be ignored)");
             }
             return false;
           });

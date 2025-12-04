@@ -7,7 +7,7 @@
   <groupId>io.github.if6was9</groupId>
   <artifactId>bx</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.2</version>
   <name>bx</name>
   <description>Utility Project</description>
   <url>https://github.com/if6was9/bx</url>
@@ -81,16 +81,12 @@
 </dependency>
 
 
-    <dependency>
-      <groupId>com.google.flogger</groupId>
-      <artifactId>flogger-slf4j-backend</artifactId>
-      <version>0.9</version>
-    </dependency>
 
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.5.21</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.github.if6was9</groupId>
