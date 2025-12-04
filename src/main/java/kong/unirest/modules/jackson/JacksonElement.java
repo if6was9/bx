@@ -27,6 +27,7 @@ package kong.unirest.modules.jackson;
 
 
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.exc.JsonNodeException;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -117,7 +118,26 @@ class JacksonElement<T extends JsonNode> implements JsonEngine.Element {
         if(!element.isIntegralNumber()) {
             throw new NumberFormatException("Not a number");
         }
-        return element.asInt();
+        
+        // The following is a workaround to have the unirest-jackson-module work against 4.6.0
+        // There are some edge cases in how int/long are mapped 
+        // This code will be gone once 4.7 is released
+        try {
+        	return element.asInt();
+        }
+        catch (JsonNodeException e) {
+        	
+        	// Exception looks like:
+        	// tools.jackson.databind.exc.JsonNodeException: 'LongNode' method `asInt()` cannot convert value 9223372036854775807 to `int`: value not in 32-bit `int` range
+        
+        	long longVal = element.asLong();
+        	if (longVal<0) {
+        	
+        		return Integer.MIN_VALUE;
+        	}
+        	    	
+        }
+        return Integer.MAX_VALUE;
     }
 
     @Override
