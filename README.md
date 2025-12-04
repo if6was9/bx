@@ -74,3 +74,8 @@ Drop a column:
 table.dropColumn("last_name");
 ```
 
+Drop all columns except those specified:
+
+```java
+table.dropColumnsExcept("id","first_name","last_name");
+```
