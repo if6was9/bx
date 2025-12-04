@@ -54,7 +54,9 @@ var table = DuckTable.of(dataSource,"employee");
 
 
 // count rows
+```java
 table.rowCount();
+```
 
 // rename 'employee' table to 'worker'
 table.rename("employee","worker");
