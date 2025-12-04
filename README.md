@@ -58,12 +58,19 @@ Count rows:
 table.rowCount();
 ```
 
-// rename 'employee' table to 'worker'
+Rename 'employee' table to 'worker':
+
+```java
 table.rename("employee","worker");
+```
 
-// rename a column
+Rename a column:
+```java
 table.rename("id","employee_id");
+```
 
-// drop a column
+Drop a column:
+```java
 table.dropColumn("last_name");
+```
 
