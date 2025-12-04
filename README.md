@@ -51,7 +51,7 @@ There is a class, DuckTable that provides many convenience methods for working w
 ```java
 
 var table = DuckTable.of(dataSource,"employee");
-
+```
 
 // count rows
 ```java
