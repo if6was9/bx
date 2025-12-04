@@ -28,14 +28,19 @@ public class DuckDataSource implements DataSource, AutoCloseable {
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		 if (iface.isInstance(this)) {
+	         return (T) this;
+	      }
+
+		 throw new DbException("not a wrapped DataSource");
 	}
 
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		 if (iface.isInstance(this)) {
+	         return true;
+	      }
+		 return false;
 	}
 
 	@Override

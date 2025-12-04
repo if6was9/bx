@@ -79,3 +79,30 @@ Drop all columns except those specified:
 ```java
 table.dropColumnsExcept("id","first_name","last_name");
 ```
+
+Rename the table:
+```java
+var newTable = table.renameTable("literary_work");
+```
+
+Create a table, insert a row, and look at the contents:
+
+```java
+c.sql("create table book( name varchar(30), author varchar(30))").update();
+
+		c.sql("insert into book (name,author) values (:name,:author)").param("name", "Moby Dick")
+				.param("author", "Herman Melville").update();
+
+		t.selectPretty(System.out);
+```
+
+```shell
+┌─────────────┬───────────────────┐
+│    name     │      author       │
+│   varchar   │      varchar      │
+├─────────────┼───────────────────┤
+│  Moby Dick  │  Herman Melville  │
+├─────────────┴───────────────────┤
+│ 1 row                           │
+└─────────────────────────────────┘
+```
