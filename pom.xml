@@ -137,6 +137,14 @@
       <version>3.27.6</version>
       <scope>test</scope>
     </dependency>
+
+            <dependency>
+              <!-- This is here for the temporary inclusion of unirest-jackson -->
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <version>1.5.3</version>
+            <scope>test</scope>
+        </dependency>
   </dependencies>
 
   <build>
