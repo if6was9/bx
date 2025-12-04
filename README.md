@@ -10,6 +10,11 @@ BX is a collection of frequently-used utility code.  It integrates the following
 * [spring-jdbc](https://docs.spring.io/spring-framework/reference/data-access/jdbc.html)
 * [HikariCP](https://github.com/brettwooldridge/HikariCP/blob/dev/README.md)
 * [DuckDB](https://duckdb.org/)
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> 695a75a (update)
 
 
 # DuckDB Support
@@ -106,3 +111,36 @@ c.sql("create table book( name varchar(30), author varchar(30))").update();
 │ 1 row                           │
 └─────────────────────────────────┘
 ```
+
+
+Add two more books using DuckDB's appender interface:
+```java
+var appender = t.createAppender();
+		appender.beginRow();
+		appender.append("Thus Spoke Zarathustra");
+		appender.append("Friedrich Nietzsche");
+		appender.endRow();
+		appender.beginRow();
+		appender.append("As I Lay Dying");
+		appender.append("William Faulkner");
+		appender.endRow();
+		appender.close();
+		
+		t.selectPretty(System.out);
+```
+
+Output:
+
+```shell
+┌──────────────────────────┬───────────────────────┐
+│           name           │        author         │
+│         varchar          │        varchar        │
+├──────────────────────────┼───────────────────────┤
+│  Moby Dick               │  Herman Melville      │
+│  Thus Spoke Zarathustra  │  Friedrich Nietzsche  │
+│  As I Lay Dying          │  William Faulkner     │
+├──────────────────────────┴───────────────────────┤
+│ 3 rows                                           │
+└──────────────────────────────────────────────────┘
+```
+

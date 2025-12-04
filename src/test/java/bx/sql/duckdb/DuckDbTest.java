@@ -24,17 +24,24 @@ public class DuckDbTest extends BxTest {
 		Assertions.assertThat(t.exists()).isTrue();
 
 		Assertions.assertThat(t.rowCount()).isEqualTo(0);
+	}
 
-		// Create a DataSource to access an in-memory DuckDB instance
-		var ds = DuckDataSource.createInMemory();
+	
+	
+	@Test
+	public void testFoo() {
+	// Create a DataSource to access an in-memory DuckDB instance
+	var ds = DuckDataSource.createInMemory();
 
-		// Use Spring JDBC to access the database
-		var client = JdbcClient.create(ds);
+	// Use Spring JDBC to access the database
+	var client = JdbcClient.create(ds);
 
 	}
 
 	@Test
-	public void testX() {
+
+	public void testX() throws SQLException {
+
 
 		var t = DuckTable.of(db().getDataSource(), "book");
 
@@ -47,7 +54,21 @@ public class DuckDbTest extends BxTest {
 
 		t.selectPretty(System.out);
 		
-	
+
+		var appender = t.createAppender();
+		appender.beginRow();
+		appender.append("Thus Spoke Zarathustra");
+		appender.append("Friedrich Nietzsche");
+		appender.endRow();
+		appender.beginRow();
+		appender.append("As I Lay Dying");
+		appender.append("William Faulkner");
+		appender.endRow();
+		appender.close();
+		
+		t.selectPretty(System.out);
+		
+
 	}
 
 	@Test
@@ -57,4 +78,5 @@ public class DuckDbTest extends BxTest {
 		Assertions.assertThat(ds.getConnection().unwrap(Connection.class)).isInstanceOf(DuckDBConnection.class);
 		Assertions.assertThat(ds.getConnection().unwrap(DuckDBConnection.class)).isInstanceOf(DuckDBConnection.class);
 	}
+
 }
