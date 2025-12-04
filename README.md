@@ -30,11 +30,13 @@ In the example above, the DataSource is special in that it only contains a singl
 is protected from being closed. This enables it to be used in a standard JDBC pool without the databse being destroyed
 after each operation.
 
-If you would like to close the databse, the DataSource that is returned has a `close()` method that can be called.
-
-
+To close the databse and the DataSource, the DataSource that is returned has a `close()` method that can be called.
 
 ```java
-// To obtain a file-based DuckDB DataSource:
+ds.close(); // closes the DataSource and the database
+```
+
+To obtain a file-based DuckDB DataSource:
+```java
 var ds = DuckDataSource.create("jdbc:duckdb:./mydb.duckdb");
 ```
