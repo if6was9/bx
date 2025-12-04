@@ -43,7 +43,7 @@ public class UnirestJacksonObjectMapper implements ObjectMapper {
     throw new BxException("unsupported type: " + value.getClass());
   }
 
-  public static void resiter(UnirestInstance instance) {
+  public static void regsiter(UnirestInstance instance) {
     instance.config().setObjectMapper(new UnirestJacksonObjectMapper());
   }
 
