@@ -36,8 +36,6 @@ public class DuckTable {
   String table;
   JdbcClient client;
 
-  String tableToken = "{{TABLE}}";
-
   public static DuckTable of(DataSource ds, String name) {
     DuckTable table = new DuckTable();
     table.table = name;
@@ -174,14 +172,6 @@ public class DuckTable {
     getJdbcClient().sql(sql).update();
   }
 
-  public String interpolate(String input) {
-    if (input == null) {
-      return input;
-    }
-
-    return input.replace(tableToken, getTableName());
-  }
-
   public void addColumn(String columnSpec) {
     Preconditions.checkNotNull(columnSpec, "columnSpec");
     String sql = String.format("ALTER TABLE %s ADD COLUMN %s", table, columnSpec);
@@ -227,6 +217,7 @@ public class DuckTable {
   }
 
   public String selectPretty(String sql) {
+
     return selectPretty(c -> c.sql(sql));
   }
 
@@ -237,7 +228,7 @@ public class DuckTable {
 
   public void selectPretty(LoggingEventBuilder log) {
 
-    selectPretty(getSelectSql(), log);
+    selectPretty(String.format("SELECT * from %s", getTableName()), log);
   }
 
   public void selectPretty(String sql, LoggingEventBuilder log) {
@@ -299,8 +290,7 @@ public class DuckTable {
 
   public void writeCsv(File f, String sql) {
     String exportSql =
-        String.format(
-            "COPY (%s) TO '%s' (HEADER, DELIMITER ',')", interpolate(sql), f.getAbsolutePath());
+        String.format("COPY (%s) TO '%s' (HEADER, DELIMITER ',')", sql, f.getAbsolutePath());
     getJdbcClient().sql(exportSql).update();
   }
 
@@ -349,14 +339,6 @@ public class DuckTable {
     getJdbcClient().sql(sql).update();
 
     return DuckTable.of(getDataSource(), tableName);
-  }
-
-  public String getSelectSql() {
-    return getSelectSql(String.format("select * from %s", tableToken));
-  }
-
-  public String getSelectSql(String spec) {
-    return interpolate(spec);
   }
 
   public void addPrimaryKey(String column) {

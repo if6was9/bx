@@ -13,6 +13,8 @@ public class PrettyQuery {
 
   JdbcClient jdbc;
 
+  String tableName;
+
   private PrettyQuery() {
     super();
   }
@@ -29,9 +31,15 @@ public class PrettyQuery {
     return q;
   }
 
+  public PrettyQuery table(String name) {
+    this.tableName = name;
+    return this;
+  }
+
   public String select(String sql) {
 
-    return select(c -> c.sql(sql));
+    final String s = sql;
+    return select(c -> c.sql(s));
   }
 
   public String select(Function<JdbcClient, StatementSpec> specFunction) {
