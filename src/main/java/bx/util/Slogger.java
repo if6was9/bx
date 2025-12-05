@@ -29,7 +29,7 @@ public class Slogger {
             }
           }
         }
-        System.out.println(x);
+
         return LoggerFactory.getLogger(x.getClassName());
       }
       if (x.getClassName().equals(Slogger.class.getName())

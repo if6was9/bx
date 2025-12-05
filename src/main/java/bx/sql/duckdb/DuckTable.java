@@ -2,17 +2,25 @@ package bx.sql.duckdb;
 
 import bx.sql.DbException;
 import bx.sql.PrettyQuery;
+import bx.util.BxException;
 import bx.util.S;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharSource;
+import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
@@ -27,6 +35,8 @@ public class DuckTable {
   DataSource dataSource;
   String table;
   JdbcClient client;
+
+  String tableToken = "{{TABLE}}";
 
   public static DuckTable of(DataSource ds, String name) {
     DuckTable table = new DuckTable();
@@ -78,7 +88,7 @@ public class DuckTable {
 
   public void drop() {
 
-    String sql = String.format("drop table if exists %s", getTableName());
+    String sql = String.format("DROP TABLE IF EXISTS %s", getTableName());
 
     getJdbcClient().sql(sql).update();
   }
@@ -109,7 +119,7 @@ public class DuckTable {
 
   public DuckTable renameTable(String newName) {
 
-    String sql = String.format("alter table %s rename to %s", getTableName(), newName);
+    String sql = String.format("ALTER TABLE %s RENAME TO %s", getTableName(), newName);
 
     getJdbcClient().sql(sql).update();
 
@@ -164,9 +174,17 @@ public class DuckTable {
     getJdbcClient().sql(sql).update();
   }
 
+  public String interpolate(String input) {
+    if (input == null) {
+      return input;
+    }
+
+    return input.replace(tableToken, getTableName());
+  }
+
   public void addColumn(String columnSpec) {
     Preconditions.checkNotNull(columnSpec, "columnSpec");
-    String sql = String.format("alter table %s add column %s", table, columnSpec);
+    String sql = String.format("ALTER TABLE %s ADD COLUMN %s", table, columnSpec);
     getJdbcClient().sql(sql).update();
   }
 
@@ -218,8 +236,8 @@ public class DuckTable {
   }
 
   public void selectPretty(LoggingEventBuilder log) {
-    String sql = "select * from " + getTableName();
-    selectPretty(sql, log);
+
+    selectPretty(getSelectSql(), log);
   }
 
   public void selectPretty(String sql, LoggingEventBuilder log) {
@@ -240,6 +258,112 @@ public class DuckTable {
     } catch (SQLException e) {
       throw new DbException(e);
     }
+  }
+
+  public void toCsv(Consumer<CharSource> consumer) {
+
+    Path p = null;
+    try {
+      p = Files.createTempFile(getTableName(), ".csv");
+
+      writeCsv(p.toFile());
+
+      consumer.accept(com.google.common.io.Files.asCharSource(p.toFile(), StandardCharsets.UTF_8));
+
+    } catch (IOException e) {
+      throw new BxException(e);
+    } finally {
+      if (p != null) {
+        p.toFile().delete();
+      }
+    }
+  }
+
+  public void toCsv(Consumer<CharSource> consumer, String sql) {
+
+    Path p = null;
+    try {
+      p = Files.createTempFile(getTableName(), ".csv");
+
+      writeCsv(p.toFile(), sql);
+
+      consumer.accept(com.google.common.io.Files.asCharSource(p.toFile(), StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      throw new BxException(e);
+    } finally {
+      if (p != null) {
+        p.toFile().delete();
+      }
+    }
+  }
+
+  public void writeCsv(File f, String sql) {
+    String exportSql =
+        String.format(
+            "COPY (%s) TO '%s' (HEADER, DELIMITER ',')", interpolate(sql), f.getAbsolutePath());
+    getJdbcClient().sql(exportSql).update();
+  }
+
+  public void writeCsv(File f) {
+    String sql =
+        String.format(
+            "COPY %s TO '%s' (HEADER, DELIMITER ',')", getTableName(), f.getAbsolutePath());
+
+    getJdbcClient().sql(sql).update();
+  }
+
+  public DuckTable createTableFromCsv(CharSource s) {
+
+    return createTableFromCsv(s, getTableName());
+  }
+
+  public DuckTable createTableFromCsv(CharSource s, String tableName) {
+
+    Path tmp = null;
+    try {
+      tmp = Files.createTempFile("table", ".csv");
+
+      var cs = com.google.common.io.Files.asCharSink(tmp.toFile(), StandardCharsets.UTF_8);
+      s.copyTo(cs);
+
+      return createTableFromCsv(tmp.toFile());
+    } catch (IOException e) {
+      throw new BxException(e);
+    } finally {
+      if (tmp != null && tmp.toFile().exists()) {
+        tmp.toFile().delete();
+      }
+    }
+  }
+
+  public DuckTable createTableFromCsv(File f) {
+
+    return createTableFromCsv(f, getTableName());
+  }
+
+  public DuckTable createTableFromCsv(File f, String tableName) {
+
+    String sql =
+        String.format("CREATE TABLE %s as (select * from '%s')", tableName, f.getAbsolutePath());
+
+    getJdbcClient().sql(sql).update();
+
+    return DuckTable.of(getDataSource(), tableName);
+  }
+
+  public String getSelectSql() {
+    return getSelectSql(String.format("select * from %s", tableToken));
+  }
+
+  public String getSelectSql(String spec) {
+    return interpolate(spec);
+  }
+
+  public void addPrimaryKey(String column) {
+
+    String sql = String.format("ALTER TABLE %s ADD PRIMARY KEY (%s)", getTableName(), column);
+
+    getJdbcClient().sql(sql).update();
   }
 
   public DuckTable table(String name) {

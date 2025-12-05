@@ -40,10 +40,10 @@ class DuckConnectionWrapper implements Connection {
 
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {
-	  
-	  if (iface.isInstance(conn)) {
-		  return true;
-	  }
+
+    if (iface.isInstance(conn)) {
+      return true;
+    }
     return iface.isAssignableFrom(conn.getClass());
   }
 

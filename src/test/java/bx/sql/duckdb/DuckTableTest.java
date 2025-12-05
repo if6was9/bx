@@ -1,6 +1,9 @@
 package bx.sql.duckdb;
 
+import bx.util.BxException;
 import bx.util.BxTest;
+import com.google.common.io.CharSource;
+import java.io.IOException;
 import java.sql.SQLException;
 import org.assertj.core.api.Assertions;
 import org.duckdb.DuckDBAppender;
@@ -21,7 +24,7 @@ public class DuckTableTest extends BxTest {
 
     Assertions.assertThat(t.exists()).isTrue();
 
-    //	Assertions.assertThat(t.rowCount()).isEqualTo(0);
+    // Assertions.assertThat(t.rowCount()).isEqualTo(0);
 
   }
 
@@ -209,5 +212,32 @@ public class DuckTableTest extends BxTest {
     t.selectPretty(
         c -> c.sql("select * from adsb where flight=:flight").param("flight", "N915CM"),
         logger.atInfo());
+  }
+
+  @Test
+  public void testCreateFromCsv() throws IOException {
+    String csv =
+        """
+        isbn,name,author
+        039309670X,Moby Dick,Herman Melville
+        9368343039,As I Lay Dying,William Faulkner
+        0140441182,Thus Spoke Zarathustra,Friedrich Nietzsche
+        """;
+
+    var t = DuckTable.of(db().getDataSource(), "book");
+
+    t = t.createTableFromCsv(CharSource.wrap(csv));
+
+    t.selectPretty(System.out);
+
+    t.toCsv(
+        x -> {
+          try {
+            System.out.println(x.read());
+          } catch (Exception e) {
+            throw new BxException(e);
+          }
+        },
+        "select name,author,isbn from " + t.getTableName());
   }
 }

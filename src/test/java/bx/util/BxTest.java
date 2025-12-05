@@ -74,7 +74,7 @@ public abstract class BxTest {
     try {
       for (AutoCloseable c : deferredAutoCloseable) {
         try {
-          logger.atInfo().log("closing {}", c);
+          logger.atDebug().log("closing {}", c);
 
           c.close();
         } catch (Exception e) {
