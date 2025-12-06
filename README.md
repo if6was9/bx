@@ -9,12 +9,7 @@ BX is a collection of frequently-used utility code.  It integrates the following
 * [jackson v3](https://github.com/FasterXML/jackson/blob/main/README.md)
 * [spring-jdbc](https://docs.spring.io/spring-framework/reference/data-access/jdbc.html)
 * [HikariCP](https://github.com/brettwooldridge/HikariCP/blob/dev/README.md)
-* [DuckDB](https://duckdb.org/)
-<<<<<<< HEAD
-=======
-<<<<<<< Updated upstream
-=======
->>>>>>> 695a75a (update)
+* [DuckDB](https://duckdb.org)
 
 
 # DuckDB Support
