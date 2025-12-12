@@ -1,5 +1,6 @@
 package bx.sql.duckdb;
 
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -13,6 +14,10 @@ public class DuckS3Extension {
   DuckS3Extension(JdbcClient db) {
     super();
     this.client = db;
+  }
+
+  public static DuckS3Extension load(DataSource ds) {
+    return load(JdbcClient.create(ds));
   }
 
   public static DuckS3Extension load(JdbcClient c) {
@@ -32,13 +37,13 @@ public class DuckS3Extension {
     try {
       String sql =
           """
-          CREATE SECRET ducktape_aws_secret (
+          CREATE SECRET bx_aws_secret (
               TYPE S3,
               PROVIDER CREDENTIAL_CHAIN
           )
           """;
 
-      client.sql(sql).update();
+      client.sql(sql).query(rs -> {});
 
     } catch (DataAccessException e) {
       if (e.getMessage().toLowerCase().contains("already exists")) {
