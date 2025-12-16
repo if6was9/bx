@@ -3,18 +3,29 @@
  */
 package bx.util;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Closer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.MissingNode;
+import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 public class Json {
 
@@ -68,5 +79,138 @@ public class Json {
       return Stream.empty();
     }
     return StreamSupport.stream(n.spliterator(), false);
+  }
+  
+
+  public static String hash(JsonNode n, HashFunction function) {
+		
+		Hasher h = function.newHasher();
+		hashValue(n,h);
+		
+		return h.hash().toString();
+  }
+  public static String hash(JsonNode n) {
+			
+	  return hash(n,Hashing.sha256());
+		
+		
+  }
+  
+  private static void hashValue(JsonNode n, Hasher h) {
+		if (n==null || n.isMissingNode() || n.isNull()) {
+			h.putString("null", StandardCharsets.UTF_8);
+			return;
+		}
+		
+		
+		if (n.isObject()) {
+			h.putString("{", StandardCharsets.UTF_8);
+			
+			ObjectNode on = (ObjectNode) n;
+			AtomicInteger count = new AtomicInteger();
+			on.propertyNames().stream().sorted().forEach(pname->{
+				if (count.getAndIncrement()>0) {
+				h.putString(",",StandardCharsets.UTF_8);
+				}
+				
+				JsonNode val = on.path(pname);
+				
+				String pstring = String.format("\"%s\":", pname);
+				
+				h.putString(pstring, StandardCharsets.UTF_8);
+				hashValue(val,h);
+			
+				
+				});
+			
+			h.putString("}", StandardCharsets.UTF_8);
+		}
+		else if (n.isArray()) {
+			
+			AtomicInteger count = new AtomicInteger();
+			h.putString("[", StandardCharsets.UTF_8);
+			tools.jackson.databind.node.ArrayNode an = (tools.jackson.databind.node.ArrayNode) n;
+			an.forEach(it->{
+				if (count.getAndIncrement()>0) {
+					h.putString(",", StandardCharsets.UTF_8);
+				}
+				hashValue(it,h);
+			});
+			
+			h.putString("]", StandardCharsets.UTF_8);
+			
+		}
+		
+		else if (n.isString()) {
+			h.putString("\"", StandardCharsets.UTF_8);
+			h.putString(n.asString(), StandardCharsets.UTF_8);
+			h.putString("\"", StandardCharsets.UTF_8);
+		}
+		else if (n.isBoolean()) {
+			h.putString(Boolean.toString(n.booleanValue()),StandardCharsets.UTF_8);
+		}
+		else  {
+			h.putString(n.toString(), StandardCharsets.UTF_8);
+		}
+			
+  }
+  
+  
+  
+  public static Optional<ObjectNode> asObjectNode(JsonNode input) {
+	  if (input==null) {
+		 return Optional.empty();
+	  }
+	  if (input.isObject()) {
+		  return Optional.of((ObjectNode)input);
+	  }
+	  return Optional.empty();
+  }
+  public static Optional<ArrayNode> asArrayNode(JsonNode input) {
+	  if (input==null) {
+		  return Optional.empty();
+	  }
+	  if (input.isArray()) {
+		  return Optional.of((ArrayNode)input);
+	  }
+	  
+	  return Optional.empty();
+  }
+  
+  public static ObjectNode removeProperties(ObjectNode n, Predicate<String> predicate) {
+	  
+	  // the extra toList() ensures that we don't have a ConcurrentModificationException
+	  n.propertyNames().stream().filter(predicate).toList().forEach(p->n.remove(p));
+	  return n;
+  }
+  public static void traverse(JsonNode n, Consumer<JsonNode> consumer) {
+	  if (n==null) {
+		  consumer.accept(NullNode.instance);
+		  return;
+	  }
+	  if (n.isValueNode()) {
+		  consumer.accept(n);
+		  return;
+	  }
+	  
+	  if (n.isArray()) {
+		  for (JsonNode it: n) {
+			  traverse(it,consumer);
+		  }
+		  consumer.accept(n);
+		  return;
+	  }
+	  if (n.isObject()) {
+		  ObjectNode on = (ObjectNode) n;
+		  on.propertyStream().forEach(it2->{
+			  traverse(StringNode.valueOf(it2.getKey()),consumer);
+			  traverse(it2.getValue(),consumer);
+		  });
+		  consumer.accept(n);
+	  }
+	  
+  
+  
+	
   }
 }
