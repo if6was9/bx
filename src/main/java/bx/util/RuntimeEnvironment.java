@@ -37,7 +37,7 @@ public class RuntimeEnvironment {
                       .orElse("")
                       .strip();
 
-              logger.atInfo().log("/proc/1/cgroup: <<%s>>", s);
+              logger.atDebug().log("/proc/1/cgroup: <<%s>>", s);
               if (s.equalsIgnoreCase("0::/")) {
                 logger.atDebug().log("inside container!");
                 return true;
