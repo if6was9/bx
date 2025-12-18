@@ -25,7 +25,7 @@ public class JsonTest {
     }
 
     AtomicInteger last = new AtomicInteger(-1);
-    Json.stream(arr)
+    Json.asStream(arr)
         .forEach(
             it -> {
               Assertions.assertThat(it.asInt()).isGreaterThan(last.intValue());
@@ -34,22 +34,11 @@ public class JsonTest {
   }
 
   @Test
-  public void testObjectStream() {
-
-    ObjectNode n = Json.createObjectNode();
-    n.put("a", 1);
-    n.put("b", 2);
-
-    Assertions.assertThat(Json.stream(n).map(t -> t.intValue()).toList()).containsExactly(1, 2);
-  }
-
-  @Test
   public void testEmptyStreams() {
-    Assertions.assertThat(Json.stream(Json.readTree("\"test\"")).count()).isEqualTo(0);
-    Assertions.assertThat(Json.stream(Json.readTree("1")).count()).isEqualTo(0);
-    Assertions.assertThat(Json.stream(NullNode.instance).count()).isEqualTo(0);
-    Assertions.assertThat(Json.stream(MissingNode.getInstance()).count()).isEqualTo(0);
-    Assertions.assertThat(Json.stream(null).count()).isEqualTo(0);
+
+    Assertions.assertThat(Json.asStream(NullNode.instance).count()).isEqualTo(0);
+    Assertions.assertThat(Json.asStream(MissingNode.getInstance()).count()).isEqualTo(0);
+    Assertions.assertThat(Json.asStream(null).count()).isEqualTo(0);
   }
 
   @Test
@@ -171,5 +160,31 @@ public class JsonTest {
     Json.removeProperties(n, p -> toRemove.contains(p));
 
     Assertions.assertThat(n.propertyNames()).doesNotContainAnyElementsOf(toRemove);
+  }
+
+  @Test
+  public void testStream() {
+    ObjectNode n = Json.createObjectNode();
+    n.put("foo", "bar");
+
+    Assertions.assertThat(Json.asStream(n).toList()).hasSize(1);
+    Assertions.assertThat(Json.asStream(n).toList()).containsExactly(n);
+
+    Assertions.assertThat(Json.asStream(null).count()).isEqualTo(0);
+    Assertions.assertThat(Json.asStream(NullNode.instance).count()).isEqualTo(0);
+    Assertions.assertThat(Json.asStream(MissingNode.getInstance()).count()).isEqualTo(0);
+
+    Assertions.assertThat(Json.asStream(StringNode.valueOf("hello")).toList().getFirst().asString())
+        .isEqualTo("hello");
+
+    var json =
+        """
+        [{"n":0},{"n":1}]
+        """;
+
+    Assertions.assertThat(Json.asStream(Json.readTree(json)).findFirst().get().path("n").asInt())
+        .isEqualTo(0);
+    Assertions.assertThat(Json.asStream(Json.readTree(json)).toList().get(1).path("n").asInt())
+        .isEqualTo(1);
   }
 }

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -73,11 +74,22 @@ public class Json {
     return MAPPER.createArrayNode();
   }
 
-  public static Stream<JsonNode> stream(JsonNode n) {
-    if (n == null) {
+  public static List<JsonNode> asList(JsonNode n) {
+    return asStream(n).toList();
+  }
+
+  public static Stream<JsonNode> asStream(JsonNode n) {
+    if (n == null || n.isNull() || n.isMissingNode()) {
       return Stream.empty();
+    } else if (n.isArray()) {
+      return StreamSupport.stream(n.spliterator(), false);
+    } else if (n.isObject()) {
+      return Stream.of(n);
+    } else if (n.isValueNode()) {
+      return Stream.of(n);
     }
-    return StreamSupport.stream(n.spliterator(), false);
+
+    return Stream.of(n);
   }
 
   public static String hash(JsonNode n, HashFunction function) {
