@@ -25,6 +25,7 @@ import javax.sql.DataSource;
 import org.duckdb.DuckDBAppender;
 import org.duckdb.DuckDBConnection;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public class DuckTable {
 
@@ -54,6 +55,12 @@ public class DuckTable {
     return dataSource;
   }
 
+  public StatementSpec select(String sql) {
+	  return getJdbcClient().sql(sql);
+  }
+  public void show() {
+	  prettyQuery().select();
+  }
   public long rowCount() {
     String sql = String.format("select count(*) as cnt from %s", getTableName());
 
