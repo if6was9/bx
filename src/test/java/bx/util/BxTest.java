@@ -1,6 +1,7 @@
 package bx.util;
 
 import bx.sql.Db;
+import bx.sql.PrettyQuery;
 import bx.sql.duckdb.DuckDataSource;
 import bx.sql.duckdb.DuckTable;
 import com.google.common.base.Suppliers;
@@ -38,6 +39,10 @@ public abstract class BxTest {
     return DuckTable.of(db().getDataSource(), name);
   }
 
+  public DataSource dataSource() {
+    return db().getDataSource();
+  }
+
   public Db db() {
     if (testDb == null) {
 
@@ -65,6 +70,10 @@ public abstract class BxTest {
     } catch (NoSuchFieldException | IllegalAccessException e) {
       throw new BxException(e);
     }
+  }
+
+  PrettyQuery prettyQuery() {
+    return PrettyQuery.with(dataSource()).out(LoggerFactory.getLogger(getClass()));
   }
 
   @AfterEach

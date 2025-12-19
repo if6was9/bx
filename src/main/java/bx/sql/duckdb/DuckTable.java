@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,14 +20,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.duckdb.DuckDBAppender;
 import org.duckdb.DuckDBConnection;
-import org.slf4j.spi.LoggingEventBuilder;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public class DuckTable {
 
@@ -192,48 +188,7 @@ public class DuckTable {
   }
 
   public PrettyQuery prettyQuery() {
-    return PrettyQuery.with(getJdbcClient());
-  }
-
-  public void selectPretty(OutputStream out) {
-    prettyQuery().select(String.format("select * from %s", getTableName()), out);
-  }
-
-  public void selectPretty(String sql, OutputStream out) {
-    prettyQuery().select(sql, out);
-  }
-
-  public void selectPretty(Function<JdbcClient, StatementSpec> input, OutputStream out) {
-    prettyQuery().select(input, out);
-  }
-
-  public String selectPretty(Function<JdbcClient, StatementSpec> input) {
-
-    return prettyQuery().select(input);
-  }
-
-  public String selectPretty() {
-    return prettyQuery().select("select * from " + getTableName());
-  }
-
-  public String selectPretty(String sql) {
-
-    return selectPretty(c -> c.sql(sql));
-  }
-
-  public void selectPretty(Function<JdbcClient, StatementSpec> input, LoggingEventBuilder log) {
-
-    PrettyQuery.with(getJdbcClient()).select(input, log);
-  }
-
-  public void selectPretty(LoggingEventBuilder log) {
-
-    selectPretty(String.format("SELECT * from %s", getTableName()), log);
-  }
-
-  public void selectPretty(String sql, LoggingEventBuilder log) {
-
-    selectPretty(c -> c.sql(sql), log);
+    return PrettyQuery.with(getJdbcClient()).table(getTableName());
   }
 
   public DuckDBAppender createAppender() {

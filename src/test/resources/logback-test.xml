@@ -11,10 +11,11 @@
     </encoder>
   </appender>
 
-   <logger name="bq" level="DEBUG" />
-  <logger name="chapters.configuration.Foo" level="DEBUG" />
+   <logger name="bx" level="DEBUG" />
+    <logger name="org" level="INFO" />
 
-  <root level="INFO">
+
+  <root level="DEBUG">
     <appender-ref ref="STDOUT"/>
   </root>
 </configuration>

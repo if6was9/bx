@@ -47,7 +47,7 @@ public class DuckDbTest extends BxTest {
         .param("author", "Herman Melville")
         .update();
 
-    t.selectPretty(System.out);
+    t.prettyQuery().select();
 
     var appender = t.createAppender();
     appender.beginRow();
@@ -60,7 +60,7 @@ public class DuckDbTest extends BxTest {
     appender.endRow();
     appender.close();
 
-    t.selectPretty(System.out);
+    t.prettyQuery().select();
   }
 
   @Test

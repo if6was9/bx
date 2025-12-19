@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions;
 import org.duckdb.DuckDBAppender;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DuckTableTest extends BxTest {
   static Logger logger = bx.util.Slogger.forEnclosingClass();
@@ -140,7 +141,8 @@ public class DuckTableTest extends BxTest {
   @Test
   public void testPrettySelect() {
     var t = loadAdsbTable("adsb");
-    t.selectPretty("select rowid,flight from adsb", System.out);
+
+    t.prettyQuery().select();
   }
 
   @Test
@@ -194,24 +196,24 @@ public class DuckTableTest extends BxTest {
 
     x.close();
 
-    t.selectPretty(logger.atInfo());
+    t.prettyQuery().select();
   }
 
   @Test
   public void testPrettySelectToStream() {
     var t = loadAdsbTable("adsb");
 
-    t.selectPretty(System.out);
+    t.prettyQuery().select();
   }
 
   @Test
   public void testPrettySelectWihtLog() {
     var t = loadAdsbTable("adsb");
-    t.selectPretty(logger.atInfo());
+    t.prettyQuery().select();
 
-    t.selectPretty(
-        c -> c.sql("select * from adsb where flight=:flight").param("flight", "N915CM"),
-        logger.atInfo());
+    t.prettyQuery()
+        .to(LoggerFactory.getLogger(getClass()))
+        .select(c -> c.sql("select * from adsb where flight=:flight").param("flight", "N915CM"));
   }
 
   @Test
@@ -227,8 +229,6 @@ public class DuckTableTest extends BxTest {
     var t = DuckTable.of(db().getDataSource(), "book");
 
     t = t.createTableFromCsv(CharSource.wrap(csv));
-
-    t.selectPretty(System.out);
 
     t.toCsv(
         x -> {

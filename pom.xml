@@ -7,7 +7,7 @@
   <groupId>io.github.if6was9</groupId>
   <artifactId>bx</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.8</version>
+  <version>0.0.9</version>
   <name>bx</name>
   <description>Utility Project</description>
   <url>https://github.com/if6was9/bx</url>
@@ -117,13 +117,14 @@
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
+      <artifactId>junit-jupiter-api</artifactId>  
+      <!-- <version>6.0.1</version> -->
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>6.0.1</version>
+    <!--  <version>6.0.1</version>-->
       <scope>test</scope>
     </dependency>
 

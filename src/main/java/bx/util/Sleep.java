@@ -48,6 +48,10 @@ public class Sleep {
     throw new IllegalArgumentException(u + " has no ChronoUnit equivalent");
   }
 
+  public static void secs(int s) {
+    sleepSecs(s);
+  }
+
   public static void sleepSecs(int s) {
     sleep(Duration.ofSeconds(s));
   }
