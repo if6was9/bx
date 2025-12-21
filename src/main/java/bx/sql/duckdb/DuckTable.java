@@ -56,11 +56,17 @@ public class DuckTable {
   }
 
   public StatementSpec select(String sql) {
-	  return getJdbcClient().sql(sql);
+    return sql(sql);
   }
+
+  public StatementSpec sql(String sql) {
+    return getJdbcClient().sql(sql);
+  }
+
   public void show() {
-	  prettyQuery().select();
+    prettyQuery().show();
   }
+
   public long rowCount() {
     String sql = String.format("select count(*) as cnt from %s", getTableName());
 

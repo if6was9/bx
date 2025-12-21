@@ -1,7 +1,12 @@
 package bx.sql;
 
+import bx.util.BxException;
 import bx.util.S;
 import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.function.Function;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -21,6 +26,8 @@ public class PrettyQuery {
 
   static Logger defaultLogger = LoggerFactory.getLogger(PrettyQuery.class);
   static Level defaultLevel = Level.INFO;
+
+  Writer outputWriter;
 
   private PrettyQuery() {
     super();
@@ -56,6 +63,10 @@ public class PrettyQuery {
     return this;
   }
 
+  public void show() {
+    select();
+  }
+
   public void select() {
 
     try {
@@ -69,9 +80,37 @@ public class PrettyQuery {
 
   private void writeOutput(String out) {
 
-    if (isEnabled()) {
-      logger.atLevel(level).log("\n{}", out);
+    try {
+      if (isEnabled()) {
+
+        if (outputWriter != null) {
+          outputWriter.append(out);
+          outputWriter.append(System.lineSeparator());
+        }
+        logger.atLevel(level).log("\n{}", out);
+      }
+    } catch (IOException e) {
+      throw new BxException(e);
     }
+  }
+
+  public PrettyQuery stderr() {
+    return out(System.err);
+  }
+
+  public PrettyQuery stdout() {
+    return out(System.out);
+  }
+
+  public PrettyQuery out(OutputStream out) {
+    return out(new OutputStreamWriter(out));
+  }
+
+  public PrettyQuery out(Writer out) {
+
+    this.outputWriter = out;
+
+    return this;
   }
 
   public PrettyQuery out(Logger b, Level level) {
@@ -90,7 +129,7 @@ public class PrettyQuery {
   }
 
   public boolean isEnabled() {
-    return getLogger().isEnabledForLevel(getLevel());
+    return (outputWriter != null || getLogger().isEnabledForLevel(getLevel()));
   }
 
   public void select(String sql) {

@@ -14,17 +14,13 @@ public class PrettyQueryTest extends BxTest {
   public void test() {
     loadAdsbTable("adsb");
 
+    PrettyQuery.with(dataSource()).table("adsb").show();
     PrettyQuery.with(dataSource()).select("select * from adsb limit 5");
-
-    //	PrettyQuery.with(dataSource()).select(c->c.sql("select flight from adsb where
-    // ac_type=:type").param("type", "B737"));
-    //	PrettyQuery.with(dataSource()).to(logger.atWarn()).select("select * from adsb limit 5");
-
   }
 
   @Test
   public void testLoggingShouldNotThrowExceptions() {
 
-    PrettyQuery.with(dataSource()).select("select * from does_not_exist");
+    PrettyQuery.with(dataSource()).stdout().select("select * from does_not_exist");
   }
 }
