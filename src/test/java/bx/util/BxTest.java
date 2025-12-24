@@ -2,9 +2,11 @@ package bx.util;
 
 import bx.sql.Db;
 import bx.sql.PrettyQuery;
+import bx.sql.duckdb.DuckCsv;
 import bx.sql.duckdb.DuckDataSource;
 import bx.sql.duckdb.DuckTable;
 import com.google.common.base.Suppliers;
+import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.sql.DataSource;
@@ -19,7 +21,7 @@ public abstract class BxTest {
 
   private List<java.lang.AutoCloseable> deferredAutoCloseable = new java.util.ArrayList<>();
 
-  DuckDataSource testDataSource;
+  private DuckDataSource testDataSource;
 
   Db testDb;
 
@@ -29,14 +31,10 @@ public abstract class BxTest {
 
   public DuckTable loadAdsbTable(String name) {
 
-    db().getJdbcClient()
-        .sql(
-            "create table "
-                + name
-                + " as (select * from 'src/test/resources/adsb.csv' order by ts)")
-        .update();
-
-    return DuckTable.of(db().getDataSource(), name);
+    return DuckCsv.using(dataSource())
+        .table(name)
+        .from(new File("./src/test/resources/adsb.csv"))
+        .load();
   }
 
   public DataSource dataSource() {
@@ -83,7 +81,7 @@ public abstract class BxTest {
     try {
       for (AutoCloseable c : deferredAutoCloseable) {
         try {
-          logger.atDebug().log("closing {}", c);
+          logger.atTrace().log("closing {}", c);
 
           c.close();
         } catch (Exception e) {

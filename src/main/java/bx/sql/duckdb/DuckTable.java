@@ -67,6 +67,11 @@ public class DuckTable {
     return getJdbcClient().sql(sql);
   }
 
+  public void describe() {
+
+    PrettyQuery.with(getDataSource()).select("describe " + getTableName());
+  }
+
   public void show() {
     prettyQuery().show();
   }

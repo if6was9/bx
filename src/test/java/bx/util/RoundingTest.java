@@ -1,7 +1,6 @@
 package bx.util;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class RoundingTest {
@@ -35,10 +34,17 @@ public class RoundingTest {
   }
 
   @Test
-  @Disabled
   public void testHeadScratcher() {
 
-    // Why does this fail?
     Assertions.assertThat(Rounding.round(1.2345, 3)).isEqualTo(1.235);
+    Assertions.assertThat(Rounding.round(1.2345, 1)).isEqualTo(1.2);
+    Assertions.assertThat(Rounding.round(11.2345, 0)).isEqualTo(11);
+
+    try {
+      Assertions.assertThat(Rounding.round(11.2345, -1)).isEqualTo(11);
+      Assertions.failBecauseExceptionWasNotThrown(IllegalArgumentException.class);
+    } catch (IllegalArgumentException ignore) {
+
+    }
   }
 }

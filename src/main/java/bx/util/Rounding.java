@@ -1,7 +1,6 @@
 package bx.util;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import com.google.common.base.Preconditions;
 
 public class Rounding {
 
@@ -15,6 +14,15 @@ public class Rounding {
     if (Double.isNaN(d) || Double.isInfinite(d)) {
       return d;
     }
-    return new BigDecimal(d).setScale(decimalPlaces, RoundingMode.HALF_UP).doubleValue();
+
+    Preconditions.checkArgument(decimalPlaces >= 0, "decimalPlaces must be >=0");
+
+    double adjust = Math.pow(10, decimalPlaces);
+
+    double x = Math.round(d * adjust);
+
+    d = x / adjust;
+
+    return d;
   }
 }

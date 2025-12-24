@@ -54,7 +54,7 @@ public class DuckCsv {
     return this;
   }
 
-  public DuckCsv from(String content) {
+  public DuckCsv fromString(String content) {
     try {
       Path p = Files.createTempFile("temp", ".csv");
       com.google.common.io.Files.asCharSink(p.toFile(), StandardCharsets.UTF_8).write(content);
@@ -94,6 +94,10 @@ public class DuckCsv {
   }
 
   public void export() {
+    save();
+  }
+
+  public void save() {
 
     if (selectForExport == null) {
       Preconditions.checkState(S.isNotBlank(table), "table name not set");

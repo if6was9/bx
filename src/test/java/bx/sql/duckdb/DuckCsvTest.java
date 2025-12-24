@@ -22,7 +22,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsv.using(dataSource()).from(csv).load();
+    DuckTable t = DuckCsv.using(dataSource()).fromString(csv).load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -42,7 +42,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsv.using(dataSource()).from(csv).load();
+    DuckTable t = DuckCsv.using(dataSource()).fromString(csv).load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -63,7 +63,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsv.using(dataSource()).from(csv).table("foo").load();
+    DuckTable t = DuckCsv.using(dataSource()).fromString(csv).table("foo").load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
