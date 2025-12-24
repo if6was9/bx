@@ -5,6 +5,7 @@ import com.google.common.io.CharSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import javax.sql.DataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -123,7 +124,12 @@ public class DuckCsvTest extends BxTest {
     expect(
         NullPointerException.class,
         () -> {
-          DuckCsv.using(null);
+          DuckCsv.using((DataSource) null);
+        });
+    expect(
+        NullPointerException.class,
+        () -> {
+          DuckCsv.using((DuckTable) null);
         });
     expect(
         NullPointerException.class,
@@ -142,6 +148,11 @@ public class DuckCsvTest extends BxTest {
         () -> {
           File f = Files.createTempFile("temp", ".csv").toFile();
           DuckCsv.using(dataSource()).to(f).export();
+        });
+    expect(
+        IllegalStateException.class,
+        () -> {
+          DuckCsv.using(dataSource()).load();
         });
   }
 }

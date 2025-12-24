@@ -35,8 +35,16 @@ public class DuckCsv {
     return new DuckCsv(ds);
   }
 
+  public static DuckCsv using(DuckTable table) {
+    return using(table.getDataSource());
+  }
+
   public JdbcClient getJdbcClient() {
     return JdbcClient.create(dataSource);
+  }
+
+  public DuckCsv fromTable(String table) {
+    return table(table);
   }
 
   public DuckCsv table(String name) {
@@ -44,9 +52,18 @@ public class DuckCsv {
     return this;
   }
 
+  public DuckCsv fromTable(DuckTable table) {
+    this.table = table.getName();
+    return this;
+  }
+
   public DuckCsv table(DuckTable table) {
     this.table = table.getName();
     return this;
+  }
+
+  public DuckCsv source(File f) {
+    return from(f);
   }
 
   public DuckCsv from(File f) {
@@ -65,6 +82,10 @@ public class DuckCsv {
     }
   }
 
+  public DuckCsv writeTo(File f) {
+    return to(f);
+  }
+
   public DuckCsv to(File outputFile) {
     this.targetFile = outputFile;
     return this;
@@ -75,6 +96,7 @@ public class DuckCsv {
       table = String.format("temp_%s", System.currentTimeMillis());
     }
 
+    Preconditions.checkState(sourceFile != null, "source file must be set");
     getJdbcClient()
         .sql(
             String.format(
