@@ -33,8 +33,16 @@ public class DuckTable {
   String table;
   JdbcClient client;
 
+  public DuckTable(DataSource ds, String name) {
+    Preconditions.checkNotNull(ds);
+    Preconditions.checkNotNull(name);
+
+    this.dataSource = ds;
+    this.table = name;
+  }
+
   public static DuckTable of(DataSource ds, String name) {
-    DuckTable table = new DuckTable();
+    DuckTable table = new DuckTable(ds, name);
     table.table = name;
     table.dataSource = ds;
     return table;
@@ -48,6 +56,10 @@ public class DuckTable {
   }
 
   public String getTableName() {
+    return table;
+  }
+
+  public String getName() {
     return table;
   }
 
