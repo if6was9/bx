@@ -1,11 +1,13 @@
 package bx.util;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
@@ -27,7 +29,9 @@ public class Config {
   Map<String, String> overrides = Maps.newHashMap();
   Map<String, Map<String, String>> merged = Maps.newHashMap();
 
+  ThreadLocal<Boolean> reenter = new ThreadLocal<Boolean>();
   List<Supplier<Map<String, String>>> suppliers = Lists.newArrayList();
+  Supplier<String> appNameSupplier = Suppliers.memoize(this::findAppName);
 
   class CurrentDirSupplier implements Supplier<Map<String, String>> {
 
@@ -37,12 +41,32 @@ public class Config {
       File f = new File(".", "config.yml");
       if (f.exists()) {
         JsonNode n = yamlMapper.readTree(f);
-        logger.atInfo().log("loading {}", f);
+        logger.atTrace().log("loading {}", f);
         return toMap(n);
       } else {
-        logger.atInfo().log("not found: {}", f);
+        logger.atTrace().log("not found: {}", f);
       }
       return Map.of();
+    }
+  }
+
+  class EnvVarSupplier implements Supplier<Map<String, String>> {
+
+    public Map<String, String> get() {
+      return System.getenv();
+    }
+  }
+
+  class SysPropSupplier implements Supplier<Map<String, String>> {
+
+    public Map<String, String> get() {
+      Map<String, String> m = Maps.newHashMap();
+      Properties sp = System.getProperties();
+      sp.forEach(
+          (k, v) -> {
+            m.put((String) k, (String) v);
+          });
+      return m;
     }
   }
 
@@ -51,12 +75,12 @@ public class Config {
     @Override
     public Map<String, String> get() {
 
-      String app = getAppName();
+      String app = findAppName();
       File dir = new File(System.getProperty("user.home"), String.format(".%s", app));
       File f = new File(dir, "config.yml");
       if (f.exists()) {
         JsonNode n = yamlMapper.readTree(f);
-        logger.atInfo().log("loading {}", f);
+        logger.atTrace().log("loading {}", f);
         return toMap(n);
       } else {
         logger.atInfo().log("not found: {}", f);
@@ -67,19 +91,20 @@ public class Config {
 
   public Config() {
     this(Map.of());
-    setupSupplierChain();
+    reset();
   }
 
-  public void setupSupplierChain() {
+  public void reset() {
+    suppliers.clear();
+    this.reenter.set(null);
+    this.appNameSupplier = Suppliers.memoize(this::findAppName);
     suppliers = Lists.newArrayList();
     suppliers.add(
         () -> {
           return overrides;
         });
-    suppliers.add(
-        () -> {
-          return System.getenv();
-        });
+    suppliers.add(new EnvVarSupplier());
+    suppliers.add(new SysPropSupplier());
     suppliers.add(new CurrentDirSupplier());
     suppliers.add(new HomeDirSupplier());
   }
@@ -95,7 +120,7 @@ public class Config {
     return instance;
   }
 
-  public Map<String, String> merge() {
+  private Map<String, String> merge() {
     Map<String, String> merged = Maps.newHashMap();
     suppliers
         .reversed()
@@ -122,14 +147,36 @@ public class Config {
   }
 
   public String getAppName() {
-    String name = System.getProperty("app.name");
-    if (S.isNotBlank(name)) {
-      return name;
+
+    return appNameSupplier.get();
+  }
+
+  private String findAppName() {
+
+    Boolean b = reenter.get();
+
+    if (b == null || b == false) {
+      reenter.set(true);
+      try {
+        for (Supplier<Map<String, String>> s : suppliers) {
+          Map<String, String> m = s.get();
+          if (m != null) {
+            String appName = m.get("app.name");
+
+            if (S.isNotBlank(appName)) {
+              return appName;
+            }
+            appName = m.get("APP_NAME");
+            if (S.isNotBlank(appName)) {
+              return appName;
+            }
+          }
+        }
+      } finally {
+        reenter.set(null);
+      }
     }
-    name = System.getenv("APP_NAME");
-    if (S.isNotBlank(name)) {
-      return name;
-    }
+
     return "bx";
   }
 

@@ -21,14 +21,19 @@ public class ConfigTest {
 
   @Test
   public void testXX() {
-    Config cfg = Config.get();
+    Config cfg = new Config();
 
     Assertions.assertThat(cfg.getAppName()).isEqualTo("bx");
 
+    System.out.println();
     System.setProperty("app.name", "foo");
 
+    cfg = new Config();
     Assertions.assertThat(cfg.getAppName()).isEqualTo("foo");
 
     System.setProperty("app.name", "bx");
+
+    cfg.reset();
+    Assertions.assertThat(cfg.getAppName()).isEqualTo("bx");
   }
 }
