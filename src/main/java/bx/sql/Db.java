@@ -108,14 +108,8 @@ public class Db {
     return new HikariConfig(props);
   }
 
-  static void reset(Supplier<Db> s) {
-    Db.supplier = null;
-
-    Db.supplier =
-        Suppliers.memoize(
-            () -> {
-              return s.get();
-            });
+  public static void reset(Db db) {
+    Db.supplier = Suppliers.ofInstance(db);
   }
 
   public Db(DataSource dataSource) {
