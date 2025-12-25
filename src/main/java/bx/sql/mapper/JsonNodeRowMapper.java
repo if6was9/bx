@@ -107,37 +107,4 @@ public abstract class JsonNodeRowMapper<T> implements org.springframework.jdbc.c
   abstract void setBoolean(int col, String name, Boolean val);
 
   abstract void setString(int col, String name, String val);
-
-  /*
-    if (arrayNodeTarget != null) {
-      arrayNodeTarget.add(val);
-    } else {
-
-    }
-  }
-
-
-    if (arrayNodeTarget != null) {
-      arrayNodeTarget.add(val);
-    } else {
-      objectNodeTarget.put(name, val);
-    }
-  }
-
-
-    if (arrayNodeTarget != null) {
-      arrayNodeTarget.add(val);
-    } else {
-      objectNodeTarget.put(name, val);
-    }
-  }
-
-  void setString(int col, String name, String val) {
-    if (arrayNodeTarget != null) {
-      arrayNodeTarget.add(val);
-    } else {
-      objectNodeTarget.put(name, val);
-    }
-  }
-  */
 }
