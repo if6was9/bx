@@ -15,4 +15,24 @@ public class ArrayNodeRowMapper extends JsonNodeRowMapper<ArrayNode> {
   public ArrayNode mapRow(ResultSet rs, int rowNum) throws SQLException {
     return (ArrayNode) super.mapRow(rs, rowNum);
   }
+
+  @Override
+  void setLong(int col, String name, Long val) {
+    arrayNodeTarget.set(col - 1, val);
+  }
+
+  @Override
+  void setDouble(int col, String name, Double val) {
+    arrayNodeTarget.set(col - 1, val);
+  }
+
+  @Override
+  void setBoolean(int col, String name, Boolean val) {
+    arrayNodeTarget.set(col - 1, val);
+  }
+
+  @Override
+  void setString(int col, String name, String val) {
+    arrayNodeTarget.set(col - 1, val);
+  }
 }

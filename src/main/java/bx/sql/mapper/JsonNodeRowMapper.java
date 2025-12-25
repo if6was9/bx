@@ -11,9 +11,10 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeType;
+import tools.jackson.databind.node.NullNode;
 import tools.jackson.databind.node.ObjectNode;
 
-public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMapper<T> {
+public abstract class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMapper<T> {
 
   ResultSet resultSet;
   Results results;
@@ -47,6 +48,9 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
       objectNodeTarget = Json.createObjectNode();
     } else if (targetType == JsonNodeType.ARRAY) {
       arrayNodeTarget = Json.createArrayNode();
+      for (int i = 0; i < md.getColumnCount(); i++) {
+        arrayNodeTarget.add(NullNode.instance);
+      }
     }
 
     for (int i = 1; i <= md.getColumnCount(); i++) {
@@ -96,7 +100,23 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
     return (T) arrayNodeTarget;
   }
 
-  void setLong(int col, String name, Long val) {
+  abstract void setLong(int col, String name, Long val);
+
+  abstract void setDouble(int col, String name, Double val);
+
+  abstract void setBoolean(int col, String name, Boolean val);
+
+  abstract void setString(int col, String name, String val);
+
+  /*
+    if (arrayNodeTarget != null) {
+      arrayNodeTarget.add(val);
+    } else {
+
+    }
+  }
+
+
     if (arrayNodeTarget != null) {
       arrayNodeTarget.add(val);
     } else {
@@ -104,15 +124,7 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
     }
   }
 
-  void setDouble(int col, String name, Double val) {
-    if (arrayNodeTarget != null) {
-      arrayNodeTarget.add(val);
-    } else {
-      objectNodeTarget.put(name, val);
-    }
-  }
 
-  void setBoolean(int col, String name, Boolean val) {
     if (arrayNodeTarget != null) {
       arrayNodeTarget.add(val);
     } else {
@@ -127,4 +139,5 @@ public class JsonNodeRowMapper<T> implements org.springframework.jdbc.core.RowMa
       objectNodeTarget.put(name, val);
     }
   }
+  */
 }
