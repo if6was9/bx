@@ -5,10 +5,8 @@ import bx.sql.PrettyQuery;
 import bx.sql.duckdb.DuckCsv;
 import bx.sql.duckdb.DuckDataSource;
 import bx.sql.duckdb.DuckTable;
-import com.google.common.base.Suppliers;
 import java.io.File;
 import java.util.List;
-import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,20 +52,7 @@ public abstract class BxTest {
 
   @BeforeEach
   final void setup() {
-
-    try {
-      var supplierField = Db.class.getDeclaredField("supplier");
-      supplierField.setAccessible(true);
-
-      Supplier<Db> s =
-          Suppliers.memoize(
-              () -> {
-                return db();
-              });
-      supplierField.set(null, s);
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new BxException(e);
-    }
+    Db.reset(db());
   }
 
   PrettyQuery prettyQuery() {

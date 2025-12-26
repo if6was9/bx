@@ -2,6 +2,7 @@ package bx.sql;
 
 import bx.sql.mapper.ObjectNodeRowMapper;
 import bx.util.BxTest;
+import bx.util.ConsoleTableRenderer;
 import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ public class SpringJdbcTest extends BxTest {
 
     client.sql("create table test as (select * from 'src/test/resources/adsb.csv')").update();
 
-    var rs = client.sql("select flight,gs from test").query(new ResultSetTextFormatter());
+    var rs = client.sql("select flight,gs from test").query(new ConsoleTableRenderer());
 
     System.out.println(rs);
   }
