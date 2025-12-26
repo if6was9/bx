@@ -5,8 +5,10 @@ import bx.sql.PrettyQuery;
 import bx.sql.duckdb.DuckCsv;
 import bx.sql.duckdb.DuckDataSource;
 import bx.sql.duckdb.DuckTable;
+import com.google.common.base.Stopwatch;
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,8 +21,6 @@ public abstract class BxTest {
 
   private List<java.lang.AutoCloseable> deferredAutoCloseable = new java.util.ArrayList<>();
 
-  private DuckDataSource testDataSource;
-
   Db testDb;
 
   protected void defer(java.lang.AutoCloseable c) {
@@ -29,10 +29,15 @@ public abstract class BxTest {
 
   public DuckTable loadAdsbTable(String name) {
 
-    return DuckCsv.using(dataSource())
-        .table(name)
-        .from(new File("./src/test/resources/adsb.csv"))
-        .load();
+    Stopwatch sw = Stopwatch.createStarted();
+    try {
+      return DuckCsv.using(dataSource())
+          .table(name)
+          .from(new File("./src/test/resources/adsb.csv"))
+          .load();
+    } finally {
+      logger.atTrace().log("load adsb took {}ms", sw.elapsed(TimeUnit.MILLISECONDS));
+    }
   }
 
   public DataSource dataSource() {
@@ -42,8 +47,9 @@ public abstract class BxTest {
   public Db db() {
     if (testDb == null) {
 
+      Stopwatch sw = Stopwatch.createStarted();
       DataSource ds = DuckDataSource.createInMemory();
-
+      logger.atTrace().log("create db took {}ms", sw.elapsed(TimeUnit.MILLISECONDS));
       testDb = new Db(ds);
       defer((AutoCloseable) ds);
     }

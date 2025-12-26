@@ -5,6 +5,7 @@ import com.google.common.base.Splitter;
 import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
@@ -93,13 +94,13 @@ public class ConsoleTableRendererTest extends BxTest {
 
     String expected =
         """
-┌───────────┬───────────┐
-│     a     │     b     │
-│  integer  │  integer  │
-├───────────┼───────────┤
-│     NULL  │        2  │
-└───────────┴───────────┘
-""";
+        ┌───────────┬───────────┐
+        │     a     │     b     │
+        │  integer  │  integer  │
+        ├───────────┼───────────┤
+        │     NULL  │        2  │
+        └───────────┴───────────┘
+        """;
     expected = expected.trim();
 
     checkTable(s);
@@ -114,28 +115,75 @@ public class ConsoleTableRendererTest extends BxTest {
 
     String expected =
         """
-┌───────────┐
-│     a     │
-│  integer  │
-├───────────┤
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-│        0  │
-├───────────┤
-│ 10 rows   │
-└───────────┘
-"""
+        ┌───────────┐
+        │     a     │
+        │  integer  │
+        ├───────────┤
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        │        0  │
+        ├───────────┤
+        │  10 rows  │
+        └───────────┘
+        """
             .trim();
 
+    System.out.println(s);
     checkTable(s);
     Assertions.assertThat(s).isEqualTo(expected);
+  }
+
+  private void checkTableLine(String line) {
+    line = line.trim();
+    Set<Character> VALID_FIRST_CHARACTERS =
+        Set.of(
+            ConsoleTableRenderer.LEFT_TEE,
+            ConsoleTableRenderer.LEFT_BORDER,
+            ConsoleTableRenderer.TOP_LEFT_CORNER,
+            ConsoleTableRenderer.BOTTOM_LEFT_CORNER);
+    Set<Character> VALID_LAST_CHARACTERS =
+        Set.of(
+            ConsoleTableRenderer.RIGHT_TEE,
+            ConsoleTableRenderer.RIGHT_BORDER,
+            ConsoleTableRenderer.TOP_RIGHT_CORNER,
+            ConsoleTableRenderer.BOTTOM_RIGHT_CORNER);
+    Assertions.assertThat(VALID_FIRST_CHARACTERS.contains(line.charAt(0)))
+        .withFailMessage(line)
+        .isTrue();
+    Assertions.assertThat(VALID_LAST_CHARACTERS.contains(line.charAt(line.length() - 1)))
+        .withFailMessage("invalid last char: %s", line)
+        .isTrue();
+
+    for (int i = 0; i < line.length(); i++) {
+      char c = line.charAt(i);
+      if (c == ConsoleTableRenderer.LEFT_BORDER && i < line.length() - 2) {
+        Assertions.assertThat(line.substring(i + 1, i + 2)).isEqualTo(" ");
+      }
+      if (c == ConsoleTableRenderer.LEFT_BORDER && i > 2) {
+        Assertions.assertThat(line.substring(i - 2, i - 1)).isEqualTo(" ");
+      }
+    }
+    if (line.charAt(0) == ConsoleTableRenderer.BOTTOM_LEFT_CORNER) {
+      Assertions.assertThat(line.trim().charAt(line.trim().length() - 1))
+          .isEqualTo(ConsoleTableRenderer.BOTTOM_RIGHT_CORNER);
+    }
+    if (line.charAt(0) == ConsoleTableRenderer.TOP_LEFT_CORNER) {
+      Assertions.assertThat(line.trim().charAt(line.trim().length() - 1))
+          .isEqualTo(ConsoleTableRenderer.BOTTOM_RIGHT_CORNER);
+    }
+    if (line.charAt(line.length() - 1) == ConsoleTableRenderer.BOTTOM_RIGHT_CORNER) {
+      Assertions.assertThat(line.charAt(0)).isEqualTo(ConsoleTableRenderer.BOTTOM_LEFT_CORNER);
+    }
+    if (line.charAt(line.length() - 1) == ConsoleTableRenderer.TOP_RIGHT_CORNER) {
+      Assertions.assertThat(line.charAt(0)).isEqualTo(ConsoleTableRenderer.TOP_LEFT_CORNER);
+    }
   }
 
   private void checkTable(String text) {
@@ -151,10 +199,17 @@ public class ConsoleTableRendererTest extends BxTest {
         Assertions.assertThat(lines.get(i).length())
             .withFailMessage("table should have consistent width")
             .isEqualTo(lines.get(i - 1).length());
+        checkTableLine(lines.get(i));
       }
 
     } catch (IOException e) {
       throw new BxException(e);
     }
+  }
+
+  @Test
+  public void testDefault() {
+    ConsoleTableRenderer ctr = new ConsoleTableRenderer();
+    Assertions.assertThat(ctr.maxRows).isEqualTo(ConsoleTableRenderer.DEFAULT_MAX_ROWS);
   }
 }

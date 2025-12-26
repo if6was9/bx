@@ -33,7 +33,6 @@ public class DbTest extends BxTest {
 
     Db db = db();
 
-    System.out.println(db);
     Assertions.assertThat(db()).isSameAs(db);
     Assertions.assertThat(Db.get()).isSameAs(db);
 
@@ -45,7 +44,6 @@ public class DbTest extends BxTest {
 
     Db db = db();
 
-    System.out.println(db);
     Assertions.assertThat(db()).isSameAs(db);
     Assertions.assertThat(Db.get()).isSameAs(db);
 
@@ -58,5 +56,11 @@ public class DbTest extends BxTest {
 
     Config cfg = new Config(m);
     Db.toHikariConfig(cfg);
+  }
+
+  @Test
+  public void testLoadAdsb() {
+    loadAdsbTable("a");
+    loadAdsbTable("b");
   }
 }

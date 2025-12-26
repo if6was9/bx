@@ -334,14 +334,14 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
         // example: │ 1000 rows (40 shown)                        │
         w.append(LEFT_BORDER);
 
-        w.append(" ");
+        w.append("  ");
 
         String text = getFooterRowText();
-        while (text.length() < tableWidth - 4) {
+        while (text.length() < tableWidth - 6) {
           text = text + " ";
         }
         w.append(text);
-        w.append(" ");
+        w.append("  ");
 
         w.append(RIGHT_BORDER);
         w.append(System.lineSeparator());
@@ -385,12 +385,13 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
 
   boolean footerFits(String footerText) {
     return footerText.length()
-        <= tableWidth - 4; // 4 = left border, right border, left and right padding
+        <= tableWidth - 6; // 4 = 1 left border, 1 right border, 2 left padding, 2 right padding
   }
 
   String getFooterRowText() {
 
     String footerText = Plural.toCount(rowCount, "row");
+
     if (!footerFits(footerText)) {
       return "";
     }
@@ -412,6 +413,7 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
     }
 
     String s = getFooterRowText();
+
     if (S.isBlank(s)) {
       return false;
     }

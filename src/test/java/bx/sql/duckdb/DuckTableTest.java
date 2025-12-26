@@ -1,8 +1,10 @@
 package bx.sql.duckdb;
 
 import bx.util.BxTest;
+import com.google.common.base.Stopwatch;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.duckdb.DuckDBAppender;
 import org.junit.jupiter.api.Test;
@@ -30,8 +32,10 @@ public class DuckTableTest extends BxTest {
   @Test
   public void testRowCount() {
 
+    Stopwatch sw = Stopwatch.createStarted();
     loadAdsbTable("adsb");
 
+    logger.atInfo().log("load adsb {}ms", sw.elapsed(TimeUnit.MILLISECONDS));
     var t = DuckTable.of(db().getDataSource(), "adsb");
 
     Assertions.assertThat(t.exists()).isTrue();
@@ -39,6 +43,7 @@ public class DuckTableTest extends BxTest {
     Assertions.assertThat(t.rowCount()).isEqualTo(1000L);
 
     t = DuckTable.of(db().getDataSource(), "foo");
+    logger.atInfo().log("complete {}ms", sw.elapsed(TimeUnit.MILLISECONDS));
   }
 
   @Test
