@@ -1,6 +1,7 @@
 package bx.sql;
 
 import bx.util.BxException;
+import bx.util.ConsoleTableRenderer;
 import bx.util.S;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
@@ -159,7 +160,7 @@ public class PrettyQuery {
     try {
       var spec = specFunction.apply(jdbc);
 
-      String out = spec.query(new ResultSetTextFormatter());
+      String out = spec.query(new ConsoleTableRenderer());
 
       writeOutput(out);
     } catch (RuntimeException e) {
