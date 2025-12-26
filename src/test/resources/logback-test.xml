@@ -11,9 +11,11 @@
     </encoder>
   </appender>
 
-   <logger name="bx" level="DEBUG" />
-    <logger name="org" level="INFO" />
 
+    <logger name="ROOT" level="INFO" />
+   <logger name="com.zaxxer" level="INFO" />
+   <logger name="org" level="INFO" />
+    <logger name="bx" level="DEBUG" />
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT"/>

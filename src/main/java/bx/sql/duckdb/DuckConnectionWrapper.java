@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import com.google.common.base.Preconditions;
+
 class DuckConnectionWrapper implements Connection {
 
   Connection conn;
@@ -35,7 +37,7 @@ class DuckConnectionWrapper implements Connection {
       return (T) conn;
     }
 
-    return conn.unwrap(iface);
+    return getLiveConnection().unwrap(iface);
   }
 
   @Override
@@ -44,47 +46,52 @@ class DuckConnectionWrapper implements Connection {
     if (iface.isInstance(conn)) {
       return true;
     }
-    return iface.isAssignableFrom(conn.getClass());
+    return iface.isAssignableFrom(getLiveConnection().getClass());
   }
 
   @Override
   public Statement createStatement() throws SQLException {
-    return conn.createStatement();
+    return getLiveConnection().createStatement();
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql) throws SQLException {
-    return conn.prepareStatement(sql);
+    return getLiveConnection().prepareStatement(sql);
   }
 
   @Override
   public CallableStatement prepareCall(String sql) throws SQLException {
-    return conn.prepareCall(sql);
+    return getLiveConnection().prepareCall(sql);
   }
 
   @Override
   public String nativeSQL(String sql) throws SQLException {
-    return conn.nativeSQL(sql);
+    return getLiveConnection().nativeSQL(sql);
   }
 
   @Override
   public void setAutoCommit(boolean autoCommit) throws SQLException {
-    conn.setAutoCommit(autoCommit);
+
+    getLiveConnection().setAutoCommit(autoCommit);
   }
 
   @Override
   public boolean getAutoCommit() throws SQLException {
-    return conn.getAutoCommit();
+	
+    return getLiveConnection().getAutoCommit();
   }
 
   @Override
   public void commit() throws SQLException {
-    conn.commit();
+	
+    getLiveConnection().commit();
   }
+
 
   @Override
   public void rollback() throws SQLException {
-    conn.rollback();
+
+    getLiveConnection().rollback();
   }
 
   @Override
@@ -95,227 +102,249 @@ class DuckConnectionWrapper implements Connection {
 
   @Override
   public boolean isClosed() throws SQLException {
+	  if (conn==null) {
+		  return true;
+	  }
+    return getLiveConnection().isClosed();
+  }
 
-    return conn.isClosed();
+  private Connection getLiveConnection() throws SQLException {
+	  if (conn==null) {
+		  throw new SQLException("connection is closed");
+	  }
+	  return conn;
   }
 
   @Override
   public DatabaseMetaData getMetaData() throws SQLException {
-    return conn.getMetaData();
+
+    return getLiveConnection().getMetaData();
   }
 
   @Override
   public void setReadOnly(boolean readOnly) throws SQLException {
-    conn.setReadOnly(readOnly);
+
+    getLiveConnection().setReadOnly(readOnly);
   }
 
   @Override
   public boolean isReadOnly() throws SQLException {
-    return conn.isReadOnly();
+	
+    return getLiveConnection().isReadOnly();
   }
 
   @Override
   public void setCatalog(String catalog) throws SQLException {
-    conn.setCatalog(catalog);
+    getLiveConnection().setCatalog(catalog);
   }
 
   @Override
   public String getCatalog() throws SQLException {
-    return conn.getCatalog();
+    return getLiveConnection().getCatalog();
   }
 
   @Override
   public void setTransactionIsolation(int level) throws SQLException {
-    conn.setTransactionIsolation(level);
+    getLiveConnection().setTransactionIsolation(level);
   }
 
   @Override
   public int getTransactionIsolation() throws SQLException {
-    return conn.getTransactionIsolation();
+    return getLiveConnection().getTransactionIsolation();
   }
 
   @Override
   public SQLWarning getWarnings() throws SQLException {
-    return conn.getWarnings();
+    return getLiveConnection().getWarnings();
   }
 
   @Override
   public void clearWarnings() throws SQLException {
-    conn.clearWarnings();
+    getLiveConnection().clearWarnings();
   }
 
   @Override
   public Statement createStatement(int resultSetType, int resultSetConcurrency)
       throws SQLException {
-    return conn.createStatement(resultSetType, resultSetConcurrency);
+    return getLiveConnection().createStatement(resultSetType, resultSetConcurrency);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
       throws SQLException {
-    return conn.prepareStatement(sql, resultSetType, resultSetConcurrency);
+    return getLiveConnection().prepareStatement(sql, resultSetType, resultSetConcurrency);
   }
 
   public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
       throws SQLException {
-    return conn.prepareCall(sql, resultSetType, resultSetConcurrency);
+    return getLiveConnection().prepareCall(sql, resultSetType, resultSetConcurrency);
   }
 
   public Map<String, Class<?>> getTypeMap() throws SQLException {
-    return conn.getTypeMap();
+    return getLiveConnection().getTypeMap();
   }
 
   public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
-    conn.setTypeMap(map);
+    getLiveConnection().setTypeMap(map);
   }
 
   public void setHoldability(int holdability) throws SQLException {
-    conn.setHoldability(holdability);
+    getLiveConnection().setHoldability(holdability);
   }
 
   public int getHoldability() throws SQLException {
-    return conn.getHoldability();
+    return getLiveConnection().getHoldability();
   }
 
   public Savepoint setSavepoint() throws SQLException {
-    return conn.setSavepoint();
+    return getLiveConnection().setSavepoint();
   }
 
   public Savepoint setSavepoint(String name) throws SQLException {
-    return conn.setSavepoint(name);
+    return getLiveConnection().setSavepoint(name);
   }
 
   public void rollback(Savepoint savepoint) throws SQLException {
-    conn.rollback(savepoint);
+    getLiveConnection().rollback(savepoint);
   }
 
   public void releaseSavepoint(Savepoint savepoint) throws SQLException {
-    conn.releaseSavepoint(savepoint);
+    getLiveConnection().releaseSavepoint(savepoint);
   }
 
   public Statement createStatement(
       int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-    return conn.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
+    return getLiveConnection().createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
   }
 
   public PreparedStatement prepareStatement(
       String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability)
       throws SQLException {
-    return conn.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+    return getLiveConnection().prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
   }
 
   public CallableStatement prepareCall(
       String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability)
       throws SQLException {
-    return conn.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+    return getLiveConnection().prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
   }
 
   public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-    return conn.prepareStatement(sql, autoGeneratedKeys);
+    return getLiveConnection().prepareStatement(sql, autoGeneratedKeys);
   }
 
   public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-    return conn.prepareStatement(sql, columnIndexes);
+    return getLiveConnection().prepareStatement(sql, columnIndexes);
   }
 
   public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-    return conn.prepareStatement(sql, columnNames);
+    return getLiveConnection().prepareStatement(sql, columnNames);
   }
 
   public Clob createClob() throws SQLException {
-    return conn.createClob();
+    return getLiveConnection().createClob();
   }
 
   public Blob createBlob() throws SQLException {
-    return conn.createBlob();
+    return getLiveConnection().createBlob();
   }
 
   public NClob createNClob() throws SQLException {
-    return conn.createNClob();
+    return getLiveConnection().createNClob();
   }
 
   public SQLXML createSQLXML() throws SQLException {
-    return conn.createSQLXML();
+    return getLiveConnection().createSQLXML();
   }
 
   public boolean isValid(int timeout) throws SQLException {
-    return conn.isValid(timeout);
+    return getLiveConnection().isValid(timeout);
   }
 
   public void setClientInfo(String name, String value) throws SQLClientInfoException {
-    conn.setClientInfo(name, value);
+	  try {
+    getLiveConnection().setClientInfo(name, value);
+	  }
+	  catch (SQLException e) {
+		  throw new SQLClientInfoException(e.toString(),Map.of());
+	  }
   }
 
   public void setClientInfo(Properties properties) throws SQLClientInfoException {
-    conn.setClientInfo(properties);
+	  try {
+    getLiveConnection().setClientInfo(properties);
+	  }
+	  catch (SQLException e) {
+		  throw new SQLClientInfoException(e.toString(),Map.of());
+	  }
   }
 
   public String getClientInfo(String name) throws SQLException {
-    return conn.getClientInfo(name);
+    return getLiveConnection().getClientInfo(name);
   }
 
   public Properties getClientInfo() throws SQLException {
-    return conn.getClientInfo();
+    return getLiveConnection().getClientInfo();
   }
 
   public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
-    return conn.createArrayOf(typeName, elements);
+    return getLiveConnection().createArrayOf(typeName, elements);
   }
 
   public void beginRequest() throws SQLException {
-    conn.beginRequest();
+    getLiveConnection().beginRequest();
   }
 
   public void endRequest() throws SQLException {
-    conn.endRequest();
+    getLiveConnection().endRequest();
   }
 
   public boolean setShardingKeyIfValid(
       ShardingKey shardingKey, ShardingKey superShardingKey, int timeout) throws SQLException {
-    return conn.setShardingKeyIfValid(shardingKey, superShardingKey, timeout);
+    return getLiveConnection().setShardingKeyIfValid(shardingKey, superShardingKey, timeout);
   }
 
   public boolean setShardingKeyIfValid(ShardingKey shardingKey, int timeout) throws SQLException {
-    return conn.setShardingKeyIfValid(shardingKey, timeout);
+    return getLiveConnection().setShardingKeyIfValid(shardingKey, timeout);
   }
 
   public void setShardingKey(ShardingKey shardingKey, ShardingKey superShardingKey)
       throws SQLException {
-    conn.setShardingKey(shardingKey, superShardingKey);
+    getLiveConnection().setShardingKey(shardingKey, superShardingKey);
   }
 
   public void setShardingKey(ShardingKey shardingKey) throws SQLException {
-    conn.setShardingKey(shardingKey);
+    getLiveConnection().setShardingKey(shardingKey);
   }
 
   @Override
   public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
-    return conn.createStruct(typeName, attributes);
+    return getLiveConnection().createStruct(typeName, attributes);
   }
 
   @Override
   public void setSchema(String schema) throws SQLException {
-    conn.setSchema(schema);
+    getLiveConnection().setSchema(schema);
   }
 
   @Override
   public String getSchema() throws SQLException {
-    return conn.getSchema();
+    return getLiveConnection().getSchema();
   }
 
   @Override
   public void abort(Executor executor) throws SQLException {
-    conn.abort(executor);
+    getLiveConnection().abort(executor);
   }
 
   @Override
   public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
-    conn.setNetworkTimeout(executor, milliseconds);
+    getLiveConnection().setNetworkTimeout(executor, milliseconds);
   }
 
   @Override
   public int getNetworkTimeout() throws SQLException {
-    return conn.getNetworkTimeout();
+    return getLiveConnection().getNetworkTimeout();
   }
 
   public void destroy() {

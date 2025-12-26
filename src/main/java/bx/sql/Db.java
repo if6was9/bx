@@ -1,6 +1,7 @@
 package bx.sql;
 
 import bx.sql.duckdb.DuckDataSource;
+import bx.util.BxException;
 import bx.util.Config;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Suppliers;
@@ -15,7 +16,7 @@ import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
-public class Db {
+public class Db implements AutoCloseable {
 
   private static Supplier<Db> supplier = Suppliers.memoize(Db::createStandard);
 
@@ -124,6 +125,24 @@ public class Db {
     return jdbcClient;
   }
 
+  public void close() {
+	  if (this.dataSource==null) {
+		  return;
+	  }
+	  try {
+	  AutoCloseable ac = (AutoCloseable) this.dataSource;
+	  ac.close();
+	  }
+	  catch (ClassCastException e) {
+		  throw new BxException("cannot close dataSource: "+dataSource);
+	  }
+	  catch (BxException | DbException e) {
+		  throw e;
+	  }
+	  catch (Exception e) {
+		  throw new BxException(e);
+	  }
+  }
   public DataSource getDataSource() {
     return dataSource;
   }

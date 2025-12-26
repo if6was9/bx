@@ -7,7 +7,7 @@
   <groupId>io.github.if6was9</groupId>
   <artifactId>bx</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.5</version>
+  <version>0.2.0</version>
   <name>bx</name>
   <description>Utility Project</description>
   <url>https://github.com/if6was9/bx</url>
@@ -128,6 +128,13 @@
       <version>3.27.6</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>2.4.240</version>
+    <scope>test</scope>
+</dependency>
   </dependencies>
 
   <build>

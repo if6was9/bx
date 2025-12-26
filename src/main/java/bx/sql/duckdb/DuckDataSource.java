@@ -40,12 +40,17 @@ public class DuckDataSource implements DataSource, AutoCloseable {
   @Override
   public Connection getConnection() throws SQLException {
 
+	  if (connection==null) {
+		  throw new SQLException("dataSource is closed");
+	  }
     return connection;
   }
 
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
-
+	  if (connection==null) {
+		  throw new SQLException("dataSource is closed");
+	  }
     return connection;
   }
 
@@ -73,6 +78,7 @@ public class DuckDataSource implements DataSource, AutoCloseable {
 
     if (connection != null) {
       connection.destroy();
+      connection=null;
     }
   }
 

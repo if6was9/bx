@@ -1,6 +1,11 @@
 package bx.util;
 
 import bx.sql.Db;
+import bx.sql.duckdb.DuckDataSource;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
@@ -58,6 +63,26 @@ public class DbTest extends BxTest {
     Db.toHikariConfig(cfg);
   }
 
+  
+  @Test
+  public void testX() throws Exception {
+	  DuckDataSource ds = DuckDataSource.createInMemory();
+	  AutoCloseable ac = (AutoCloseable) ds;
+	  
+	  Connection keep = ds.getConnection();
+	  ac.close();
+	  ac.close(); // test idempotency
+	  
+	  Assertions.assertThat(keep.isClosed()).isTrue();
+	  try {
+		  Connection c =ds.getConnection();
+		  Assertions.failBecauseExceptionWasNotThrown(SQLException.class);
+	  }
+	  catch (SQLException expected) {
+		  // Ok
+	  }
+	
+  }
   @Test
   public void testLoadAdsb() {
     loadAdsbTable("a");

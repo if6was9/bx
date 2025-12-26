@@ -6,6 +6,7 @@ import bx.util.Slogger;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
+
 public class PrettyQueryTest extends BxTest {
 
   static Logger logger = Slogger.forEnclosingClass();
@@ -23,5 +24,16 @@ public class PrettyQueryTest extends BxTest {
   public void testLoggingShouldNotThrowExceptions() {
 
     PrettyQuery.with(dataSource()).stdout().select(c -> c.sql("select * from does_not_exist"));
+  }
+  
+  @Test
+  public void testIt() {
+	  var client = getH2Db().get().getJdbcClient();
+	  
+	  client.sql("create table test (name char(20), age int)").update();
+	  client.sql("insert into test (name, age) values ('homer',8)").update();
+	  
+	  PrettyQuery.with(client).table("test").show();
+	  
   }
 }
