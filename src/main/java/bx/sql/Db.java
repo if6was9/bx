@@ -3,10 +3,14 @@ package bx.sql;
 import bx.sql.duckdb.DuckDataSource;
 import bx.util.BxException;
 import bx.util.Config;
+import bx.util.S;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.base.Suppliers;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
@@ -23,6 +27,8 @@ public class Db implements AutoCloseable {
   private DataSource dataSource;
   private JdbcClient jdbcClient;
 
+  private String urlForToString;
+
   public static Db get() {
 
     return supplier.get();
@@ -31,18 +37,25 @@ public class Db implements AutoCloseable {
   static Db createStandard() {
 
     try {
-      Config config = new Config();
+      Config config = Config.get();
 
       var cfg = toHikariConfig(config);
 
-      if (cfg.getJdbcUrl().contains("jdbc:duckdb")) {
-        var dds = DuckDataSource.create(DriverManager.getConnection(cfg.getJdbcUrl()));
-        return new Db(dds);
+      if (S.isEmpty(cfg.getJdbcUrl())) {
+        throw new DbException("DB_URL not set");
+      }
 
+      if (cfg.getJdbcUrl().contains("jdbc:duckdb")) {
+
+        var dds = DuckDataSource.create(DriverManager.getConnection(cfg.getJdbcUrl()));
+        Db db = new Db(dds);
+        db.urlForToString = cfg.getJdbcUrl();
+        return db;
       } else {
         var ds = new HikariDataSource(cfg);
 
         Db db = new Db(ds);
+        db.urlForToString = ds.getJdbcUrl();
         return db;
       }
     } catch (SQLException e) {
@@ -115,6 +128,9 @@ public class Db implements AutoCloseable {
 
   public Db(DataSource dataSource) {
     this.dataSource = dataSource;
+    if (this.dataSource != null) {
+      this.urlForToString = extractUrl(dataSource);
+    }
   }
 
   public JdbcClient getJdbcClient() {
@@ -126,24 +142,47 @@ public class Db implements AutoCloseable {
   }
 
   public void close() {
-	  if (this.dataSource==null) {
-		  return;
-	  }
-	  try {
-	  AutoCloseable ac = (AutoCloseable) this.dataSource;
-	  ac.close();
-	  }
-	  catch (ClassCastException e) {
-		  throw new BxException("cannot close dataSource: "+dataSource);
-	  }
-	  catch (BxException | DbException e) {
-		  throw e;
-	  }
-	  catch (Exception e) {
-		  throw new BxException(e);
-	  }
+    if (this.dataSource == null) {
+      return;
+    }
+    try {
+      AutoCloseable ac = (AutoCloseable) this.dataSource;
+      ac.close();
+    } catch (ClassCastException e) {
+      throw new BxException("cannot close dataSource: " + dataSource);
+    } catch (BxException | DbException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new BxException(e);
+    }
   }
+
   public DataSource getDataSource() {
     return dataSource;
+  }
+
+  private String extractUrl(DataSource ds) {
+
+    try (SqlCloser closer = SqlCloser.create()) {
+      Connection c = dataSource.getConnection();
+      closer.register(c);
+      return c.getMetaData().getURL();
+    } catch (SQLException e) {
+      return null;
+    }
+  }
+
+  public String toString() {
+    ToStringHelper h = MoreObjects.toStringHelper(this);
+
+    try {
+      h.add("dataSource", dataSource);
+    } catch (Throwable t) {
+
+    }
+
+    h.add("url", urlForToString);
+
+    return h.toString();
   }
 }

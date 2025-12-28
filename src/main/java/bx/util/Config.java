@@ -4,11 +4,13 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import tools.jackson.databind.JsonNode;
@@ -27,7 +29,8 @@ public class Config {
   }
 
   Map<String, String> overrides = Maps.newHashMap();
-  Map<String, Map<String, String>> merged = Maps.newHashMap();
+
+  AtomicReference<Map<String, String>> mergedRef = new AtomicReference<Map<String, String>>();
 
   ThreadLocal<Boolean> reenter = new ThreadLocal<Boolean>();
   List<Supplier<Map<String, String>>> suppliers = Lists.newArrayList();
@@ -90,13 +93,15 @@ public class Config {
   }
 
   public Config() {
-    this(Map.of());
+    this(new HashMap<String, String>());
     reset();
   }
 
   public void reset() {
     suppliers.clear();
     this.reenter.set(null);
+    this.mergedRef.set(null);
+
     this.appNameSupplier = Suppliers.memoize(this::findAppName);
     suppliers = Lists.newArrayList();
     suppliers.add(
@@ -132,12 +137,15 @@ public class Config {
   }
 
   public synchronized Map<String, String> getMergedProperties() {
-    String name = getAppName();
-    Map<String, String> merged = this.merged.get(name);
-    if (merged == null) {
-      merged = merge();
-      this.merged.put(name, merged);
+
+    Map<String, String> merged = mergedRef.get();
+    if (merged != null) {
+      return merged;
     }
+
+    merged = merge();
+    this.mergedRef.set(merged);
+
     return merged;
   }
 
@@ -208,5 +216,13 @@ public class Config {
     }
 
     return S.notBlank(getMergedProperties().get(key));
+  }
+
+  public void override(String name, String val, boolean reset) {
+
+    this.overrides.put(name, val);
+    if (reset) {
+      reset();
+    }
   }
 }

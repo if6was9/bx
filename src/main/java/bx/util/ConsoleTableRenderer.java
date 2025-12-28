@@ -54,7 +54,7 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
 
   public ConsoleTableRenderer maxRows(int n) {
     this.maxRows = n;
-    System.out.println();
+
     return this;
   }
 

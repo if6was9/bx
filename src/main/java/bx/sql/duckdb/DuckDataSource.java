@@ -1,18 +1,24 @@
 package bx.sql.duckdb;
 
 import bx.sql.DbException;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
 
 public class DuckDataSource implements DataSource, AutoCloseable {
 
   DuckConnectionWrapper connection;
+
+  Supplier<String> urlSupplier = Suppliers.memoize(this::extractUrl);
 
   @Override
   public Logger getParentLogger() throws SQLFeatureNotSupportedException {
@@ -40,17 +46,17 @@ public class DuckDataSource implements DataSource, AutoCloseable {
   @Override
   public Connection getConnection() throws SQLException {
 
-	  if (connection==null) {
-		  throw new SQLException("dataSource is closed");
-	  }
+    if (connection == null) {
+      throw new SQLException("dataSource is closed");
+    }
     return connection;
   }
 
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
-	  if (connection==null) {
-		  throw new SQLException("dataSource is closed");
-	  }
+    if (connection == null) {
+      throw new SQLException("dataSource is closed");
+    }
     return connection;
   }
 
@@ -78,7 +84,7 @@ public class DuckDataSource implements DataSource, AutoCloseable {
 
     if (connection != null) {
       connection.destroy();
-      connection=null;
+      connection = null;
     }
   }
 
@@ -107,5 +113,23 @@ public class DuckDataSource implements DataSource, AutoCloseable {
       ds.connection = new DuckConnectionWrapper(c);
     }
     return ds;
+  }
+
+  private String extractUrl() {
+    try {
+      return this.connection.getMetaData().getURL();
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public String toString() {
+    ToStringHelper h = MoreObjects.toStringHelper(getClass());
+    try {
+      h.add("url", this.urlSupplier.get());
+    } catch (RuntimeException e) {
+      // ignore
+    }
+    return h.toString();
   }
 }

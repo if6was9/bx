@@ -15,29 +15,7 @@ public class Slogger {
 
   public static Logger forEnclosingClass() {
 
-    Throwable t = new Throwable();
-    boolean found = false;
-    for (StackTraceElement x : t.getStackTrace()) {
-
-      if (found) {
-
-        if (x.getMethodName().equals("<init>")) {
-          if (!warnings.contains(x.getClassName())) {
-            logger.atWarn().log("logger instance should be static in {}", x.getClassName());
-            synchronized (warnings) {
-              warnings.add(x.getClassName());
-            }
-          }
-        }
-
-        return LoggerFactory.getLogger(x.getClassName());
-      }
-      if (x.getClassName().equals(Slogger.class.getName())
-          && x.getMethodName().equals("forEnclosingClass")) {
-        found = true;
-      }
-    }
-
-    return LoggerFactory.getLogger(Slogger.class);
+    return LoggerFactory.getLogger(
+        Classes.findEnclosingClassName().orElse(Slogger.class.getName()));
   }
 }
