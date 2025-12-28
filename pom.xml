@@ -7,7 +7,7 @@
   <groupId>io.github.if6was9</groupId>
   <artifactId>bx</artifactId>
   <packaging>jar</packaging>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
   <name>bx</name>
   <description>Utility Project</description>
   <url>https://github.com/if6was9/bx</url>
