@@ -86,7 +86,7 @@ public class Config {
         logger.atTrace().log("loading {}", f);
         return toMap(n);
       } else {
-        logger.atInfo().log("not found: {}", f);
+        logger.atDebug().log("not found: {}", f);
       }
       return Map.of();
     }
