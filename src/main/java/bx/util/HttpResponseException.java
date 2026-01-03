@@ -1,15 +1,25 @@
 package bx.util;
 
+import java.util.Optional;
+
 public class HttpResponseException extends BxException {
 
-  int code = -1;
+  Integer httpStatus = null;
 
   public HttpResponseException(int code) {
     this(code, null);
   }
 
-  public HttpResponseException(int code, String message) {
-    super(String.format("rc=%s message=%s", code, message));
-    this.code = code;
+  public HttpResponseException(Integer code, String message) {
+    super(String.format("%s (httpStatus=%s)", S.notBlank(message).orElse("").trim(), code).trim());
+    this.httpStatus = code;
+  }
+
+  public HttpResponseException(Throwable t) {
+    super(t);
+  }
+
+  public Optional<Integer> getHttpStatus() {
+    return Optional.ofNullable(httpStatus);
   }
 }

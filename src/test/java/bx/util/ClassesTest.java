@@ -17,13 +17,15 @@ public class ClassesTest {
   }
 
   class MyInner {
-	  
-	  Logger logger = Slogger.forEnclosingClass();
-	  String foo() {
-		  logger.atInfo().log("foo");
-		  return Classes.findEnclosingClassName().orElse("NOT FOUND");
-	  }
+
+    Logger logger = Slogger.forEnclosingClass();
+
+    String foo() {
+      logger.atInfo().log("foo");
+      return Classes.findEnclosingClassName().orElse("NOT FOUND");
+    }
   }
+
   @Test
   public void testIt() {
 
@@ -36,7 +38,7 @@ public class ClassesTest {
         };
 
     Assertions.assertThat(s.get()).isEqualTo(ClassesTest.class.getName());
-    
+
     Assertions.assertThat(new MyInner().foo()).isEqualTo("bx.util.ClassesTest$MyInner");
   }
 }
