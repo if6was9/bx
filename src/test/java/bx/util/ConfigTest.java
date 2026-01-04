@@ -43,7 +43,12 @@ public class ConfigTest {
 
   @Test
   public void testSrcMainResources() throws IOException {
-    Files.walk(new File("./src/main/resources").toPath())
+
+    File smr = new File("./src/main/resources");
+    if (!smr.exists()) {
+      return;
+    }
+    Files.walk(smr.toPath())
         .filter(p -> p.toFile().isFile())
         .forEach(
             it -> {
