@@ -73,7 +73,7 @@ public class PrettyQuery {
     try {
       Preconditions.checkState(S.isNotBlank(tableName), "table name must be set for select()");
 
-      select(String.format("select * from %s", tableName));
+      select("select * as cnt from {{table}}");
     } catch (RuntimeException e) {
       getLogger().atWarn().setCause(e).log("failure");
     }
@@ -138,7 +138,7 @@ public class PrettyQuery {
     if (!isEnabled()) {
       return;
     }
-    final String s = sql;
+    final String s = interpolateTableName(sql);
     select(c -> c.sql(s));
   }
 
@@ -150,6 +150,10 @@ public class PrettyQuery {
   public static synchronized void setDefaultOutput(Logger logger, Level level) {
     defaultLogger = logger;
     defaultLevel = level;
+  }
+
+  String interpolateTableName(String sql) {
+    return SqlUtil.interpolateTable(sql, this.tableName);
   }
 
   public void select(Function<JdbcClient, StatementSpec> specFunction) {

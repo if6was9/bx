@@ -2,7 +2,9 @@ package bx.sql.duckdb;
 
 import bx.sql.DbException;
 import bx.sql.PrettyQuery;
+import bx.sql.SqlUtil;
 import bx.util.S;
+import bx.util.Slogger;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -16,11 +18,13 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.duckdb.DuckDBAppender;
 import org.duckdb.DuckDBConnection;
+import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public class DuckTable {
 
+  static Logger logger = Slogger.forEnclosingClass();
   DataSource dataSource;
   String table;
   JdbcClient client;
@@ -28,7 +32,6 @@ public class DuckTable {
   public DuckTable(DataSource ds, String name) {
     Preconditions.checkNotNull(ds);
     Preconditions.checkNotNull(name);
-
     this.dataSource = ds;
     this.table = name;
   }
@@ -45,6 +48,10 @@ public class DuckTable {
       client = JdbcClient.create(getDataSource());
     }
     return client;
+  }
+
+  private String interpolateTable(String sql) {
+    return SqlUtil.interpolateTable(sql, getTableName());
   }
 
   public String getTableName() {
@@ -64,12 +71,12 @@ public class DuckTable {
   }
 
   public StatementSpec sql(String sql) {
-    return getJdbcClient().sql(sql);
+    return getJdbcClient().sql(interpolateTable(sql));
   }
 
   public void describe() {
 
-    PrettyQuery.with(getDataSource()).select("describe " + getTableName());
+    PrettyQuery.with(getDataSource()).table(getTableName()).select("describe {{table}}");
   }
 
   public void show() {
@@ -77,9 +84,9 @@ public class DuckTable {
   }
 
   public long rowCount() {
-    String sql = String.format("select count(*) as cnt from %s", getTableName());
+    String sql = "select count(*) as cnt from {{table}}";
 
-    return (Long) getJdbcClient().sql(sql).query().singleValue();
+    return (Long) sql(sql).query(Long.class).single();
   }
 
   public boolean exists() {
@@ -89,8 +96,11 @@ public class DuckTable {
     }
 
     AtomicBoolean b = new AtomicBoolean(false);
+
+    String sql = "SHOW TABLES";
+    logger.atDebug().log("SQL: {}", sql);
     getJdbcClient()
-        .sql("show tables")
+        .sql(sql)
         .query(
             c -> {
               String name = c.getString("name");
@@ -115,7 +125,7 @@ public class DuckTable {
     }
 
     String sql = String.format("select * from %s limit 1", getTableName());
-
+    logger.atDebug().log("SQL: {}", sql);
     var names =
         getJdbcClient()
             .sql(sql)
@@ -136,7 +146,7 @@ public class DuckTable {
   public DuckTable renameTable(String newName) {
 
     String sql = String.format("ALTER TABLE %s RENAME TO %s", getTableName(), newName);
-
+    logger.atDebug().log("SQL: {}", sql);
     getJdbcClient().sql(sql).update();
 
     return DuckTable.of(getDataSource(), newName);
@@ -145,7 +155,7 @@ public class DuckTable {
   public void renameColumn(String oldName, String newName) {
 
     String sql = String.format("ALTER TABLE %s RENAME %s to %s", getTableName(), oldName, newName);
-
+    logger.atDebug().log("SQL: {}", sql);
     getJdbcClient().sql(sql).update();
   }
 
@@ -187,25 +197,26 @@ public class DuckTable {
     }
 
     String sql = String.format("ALTER TABLE %s DROP %s", getTableName(), column);
+    logger.atDebug().log("SQL: {}", sql);
     getJdbcClient().sql(sql).update();
   }
 
   public void addColumn(String columnSpec) {
     Preconditions.checkNotNull(columnSpec, "columnSpec");
-    String sql = String.format("ALTER TABLE %s ADD COLUMN %s", table, columnSpec);
+    String sql = String.format("ALTER TABLE %s ADD COLUMN %s", getTableName(), columnSpec);
     getJdbcClient().sql(sql).update();
   }
 
   public int deleteRow(long id) {
     String sql = String.format("DELETE FROM %s where rowid=:rowid", getTableName());
-
+    logger.atDebug().log("SQL: {}", sql);
     return getJdbcClient().sql(sql).param("rowid", id).update();
   }
 
   public int update(long rowId, String column, Object val) {
 
     String sql = String.format("UPDATE %s set %s=:val where rowid=:rowid", getTableName(), column);
-
+    logger.atDebug().log("SQL: {}", sql);
     return getJdbcClient().sql(sql).param("val", val).param("rowid", rowId).update();
   }
 
@@ -235,7 +246,7 @@ public class DuckTable {
   public void addPrimaryKey(String column) {
 
     String sql = String.format("ALTER TABLE %s ADD PRIMARY KEY (%s)", getTableName(), column);
-
+    logger.atDebug().log("SQL: {}", sql);
     getJdbcClient().sql(sql).update();
   }
 

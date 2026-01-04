@@ -1,5 +1,6 @@
 package bx.util;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,22 @@ public class ItemsTest {
       Item.of("big", Long.MIN_VALUE).index();
       Assertions.failBecauseExceptionWasNotThrown(IndexOutOfBoundsException.class);
     } catch (IndexOutOfBoundsException ignore) {
+    }
+  }
+
+  @Test
+  public void testIx() {
+    List<Integer> list = Lists.newArrayList();
+    for (int i = 0; i < 10; i++) {
+      list.add(i);
+    }
+
+    List<Item<Integer>> itemList = Items.list(list);
+
+    Assertions.assertThat(itemList.size()).isEqualTo(list.size());
+    for (int i = 0; i < list.size(); i++) {
+      Assertions.assertThat(list.get(i)).isSameAs(itemList.get(i).get());
+      Assertions.assertThat(itemList.get(i).index()).isEqualTo(i);
     }
   }
 }

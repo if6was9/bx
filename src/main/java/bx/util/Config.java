@@ -4,7 +4,12 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,6 +55,32 @@ public class Config {
         logger.atTrace().log("not found: {}", f);
       }
       return Map.of();
+    }
+  }
+
+  class ClasspathConfigSupplier implements Supplier<Map<String, String>> {
+
+    public Map<String, String> get() {
+      Iterator<URL> t = new ArrayList().iterator();
+
+      try {
+        t = getClass().getClassLoader().getResources("config.yml").asIterator();
+      } catch (IOException e) {
+        throw new BxException(e);
+      }
+
+      Map<String, String> props = Maps.newHashMap();
+      t.forEachRemaining(
+          url -> {
+            try (InputStream in = url.openStream()) {
+
+              props.putAll(toMap(yamlMapper.readTree(in)));
+            } catch (Exception ex) {
+              logger.atWarn().setCause(ex).log("problem loading " + url);
+            }
+          });
+
+      return Map.copyOf(props);
     }
   }
 
@@ -108,10 +139,12 @@ public class Config {
         () -> {
           return overrides;
         });
+
     suppliers.add(new EnvVarSupplier());
     suppliers.add(new SysPropSupplier());
     suppliers.add(new CurrentDirSupplier());
     suppliers.add(new HomeDirSupplier());
+    suppliers.add(new ClasspathConfigSupplier());
   }
 
   public Config(Map<String, String> props) {
@@ -144,6 +177,7 @@ public class Config {
     }
 
     merged = merge();
+
     this.mergedRef.set(merged);
 
     return merged;

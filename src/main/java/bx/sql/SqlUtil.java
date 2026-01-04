@@ -97,4 +97,16 @@ public class SqlUtil {
       return sql;
     }
   }
+
+  public static String interpolateTable(String sql, String table) {
+
+    if (sql == null || S.isBlank(table)) {
+      return sql;
+    }
+
+    if (table.chars().allMatch(c -> Character.isWhitespace(c))) {
+      table = String.format("\"%s\"", table);
+    }
+    return sql.replace("{{table}}", table);
+  }
 }
