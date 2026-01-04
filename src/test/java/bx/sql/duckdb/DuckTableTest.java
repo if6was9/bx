@@ -47,6 +47,12 @@ public class DuckTableTest extends BxTest {
   }
 
   @Test
+  public void testGetTableNames() {
+    var t1 = loadAdsbTable("t1");
+    var t2 = loadAdsbTable("t2");
+  }
+
+  @Test
   public void testRenameTable() {
     var t = loadAdsbTable("adsb");
 

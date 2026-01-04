@@ -7,11 +7,11 @@ import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -76,7 +76,7 @@ public class DuckTable {
 
   public void describe() {
 
-    PrettyQuery.with(getDataSource()).table(getTableName()).select("describe {{table}}");
+    prettyQuery().select("describe {{table}}");
   }
 
   public void show() {
@@ -97,19 +97,12 @@ public class DuckTable {
 
     AtomicBoolean b = new AtomicBoolean(false);
 
-    String sql = "SHOW TABLES";
+    String sql = "SELECT name from (SHOW TABLES) where name=:name";
     logger.atDebug().log("SQL: {}", sql);
-    getJdbcClient()
-        .sql(sql)
-        .query(
-            c -> {
-              String name = c.getString("name");
-              if (name.equalsIgnoreCase(getTableName())) {
-                b.set(true);
-              }
-            });
 
-    return b.get();
+    Optional<String> name = sql(sql).param("name", getTableName()).query(String.class).optional();
+
+    return name.isPresent();
   }
 
   public void drop() {
@@ -120,25 +113,10 @@ public class DuckTable {
   }
 
   public List<String> getColumnNames() {
-    if (!exists()) {
-      throw new DbException("table does not exist: " + getTableName());
-    }
 
-    String sql = String.format("select * from %s limit 1", getTableName());
+    String sql = String.format("select column_name from (describe %s)", getTableName());
     logger.atDebug().log("SQL: {}", sql);
-    var names =
-        getJdbcClient()
-            .sql(sql)
-            .query(
-                rs -> {
-                  var md = rs.getMetaData();
-                  List<String> list = Lists.newArrayList();
-                  for (int i = 1; i <= md.getColumnCount(); i++) {
-                    String name = md.getColumnName(i);
-                    list.add(name);
-                  }
-                  return list;
-                });
+    var names = getJdbcClient().sql(sql).query(String.class).list();
 
     return List.copyOf(names);
   }
