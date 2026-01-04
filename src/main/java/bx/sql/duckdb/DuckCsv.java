@@ -2,18 +2,27 @@ package bx.sql.duckdb;
 
 import bx.util.BxException;
 import bx.util.S;
+import bx.util.Slogger;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public class DuckCsv {
+
+  static Logger logger = Slogger.forEnclosingClass();
 
   DataSource dataSource;
 
@@ -97,11 +106,31 @@ public class DuckCsv {
     }
 
     Preconditions.checkState(sourceFile != null, "source file must be set");
+
+    Stopwatch sw = Stopwatch.createStarted();
     getJdbcClient()
         .sql(
             String.format(
                 "create table %s as (select * from '%s')", table, sourceFile.getAbsolutePath()))
         .update();
+
+    String sql = String.format("select count(*) cnt from '%s'", table);
+    ;
+    Long count = (Long) getJdbcClient().sql(sql).query().singleValue();
+
+    long elapsedMs = sw.elapsed(TimeUnit.MILLISECONDS);
+    BigDecimal recordsPerSecond =
+        new BigDecimal(((double) count) / Math.max(1, elapsedMs))
+            .multiply(new BigDecimal(1000), MathContext.DECIMAL64);
+    recordsPerSecond = recordsPerSecond.setScale(1, RoundingMode.HALF_UP);
+
+    logger.atInfo().log(
+        "loaded {} records into '{}' from '{}' in {}ms ({}/sec)",
+        count,
+        table,
+        sourceFile,
+        elapsedMs,
+        recordsPerSecond);
     return DuckTable.of(dataSource, table);
   }
 

@@ -22,6 +22,8 @@ public class Sleep {
         return TimeUnit.MICROSECONDS;
       case ChronoUnit.NANOS:
         return TimeUnit.NANOSECONDS;
+      case ChronoUnit.MILLIS:
+        return TimeUnit.MILLISECONDS;
     }
     ;
 
@@ -42,6 +44,8 @@ public class Sleep {
         return ChronoUnit.MICROS;
       case TimeUnit.NANOSECONDS:
         return ChronoUnit.NANOS;
+      case TimeUnit.MILLISECONDS:
+        return ChronoUnit.MILLIS;
     }
     ;
 
@@ -50,6 +54,10 @@ public class Sleep {
 
   public static void secs(int s) {
     sleepSecs(s);
+  }
+
+  public static void sleepMillis(long milli) {
+    sleep(Duration.ofMillis(milli));
   }
 
   public static void sleepSecs(int s) {

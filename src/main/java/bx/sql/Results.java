@@ -104,6 +104,19 @@ public class Results {
     }
   }
 
+  public Optional<Long> getLong(int col) {
+    try {
+      long v = rs.getLong(col);
+      if (rs.wasNull()) {
+        return Optional.empty();
+      }
+      return Optional.of(v);
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
   public Optional<Long> getLong(String name) {
     try {
       long d = rs.getLong(name);

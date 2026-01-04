@@ -5,6 +5,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
+import java.io.File;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -102,6 +103,10 @@ public class DuckDataSource implements DataSource, AutoCloseable {
   public static DuckDataSource createInMemory() {
 
     return create("jdbc:duckdb:");
+  }
+
+  public static DuckDataSource create(File dbFile) {
+    return create(String.format("jdbc:duckdb:%s", dbFile.toString()));
   }
 
   public static DuckDataSource create(Connection c) {
