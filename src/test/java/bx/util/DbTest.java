@@ -57,7 +57,7 @@ public class DbTest extends BxTest {
 
     var m = Map.of("DB_JDBC_URL", "jdbc:foo:bar");
 
-    Config cfg = new Config(m);
+    Config cfg = Config.just(m);
     Db.toHikariConfig(cfg);
   }
 
