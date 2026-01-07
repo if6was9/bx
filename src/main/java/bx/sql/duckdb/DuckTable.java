@@ -5,6 +5,7 @@ import bx.sql.PrettyQuery;
 import bx.sql.SqlUtil;
 import bx.util.S;
 import bx.util.Slogger;
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.sql.Connection;
@@ -221,11 +222,16 @@ public class DuckTable {
     return DuckCsv.using(dataSource).table(this);
   }
 
-  public void addPrimaryKey(String column) {
+  public void addPrimaryKey(String... columns) {
 
-    String sql = String.format("ALTER TABLE %s ADD PRIMARY KEY (%s)", getTableName(), column);
+    Preconditions.checkArgument(
+        columns != null && columns.length > 0, "must provide at least one column");
+    String columnSpec = Joiner.on(", ").join(List.of(columns));
+
+    String sql = String.format("ALTER TABLE '%s' ADD PRIMARY KEY (%s)", getTableName(), columnSpec);
     logger.atDebug().log("SQL: {}", sql);
     getJdbcClient().sql(sql).update();
+    getJdbcClient().sql("CHECKPOINT").query().listOfRows();
   }
 
   public DuckTable table(String name) {

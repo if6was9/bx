@@ -73,7 +73,7 @@ public class PrettyQuery {
     try {
       Preconditions.checkState(S.isNotBlank(tableName), "table name must be set for select()");
 
-      select("select * as cnt from {{table}}");
+      select("select * from {{table}}");
     } catch (RuntimeException e) {
       getLogger().atWarn().setCause(e).log("failure");
     }
