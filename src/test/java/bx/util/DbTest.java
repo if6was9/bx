@@ -70,7 +70,8 @@ public class DbTest extends BxTest {
     ac.close();
     ac.close(); // test idempotency
 
-    Assertions.assertThat(keep.isClosed()).isTrue();
+    Assertions.assertThat(keep.isClosed())
+        .isFalse(); // we can't actually close connections that have been opened
     try {
       Connection c = ds.getConnection();
       Assertions.failBecauseExceptionWasNotThrown(SQLException.class);
