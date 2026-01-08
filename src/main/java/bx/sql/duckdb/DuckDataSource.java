@@ -14,17 +14,19 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import org.duckdb.DuckDBConnection;
 
 public class DuckDataSource implements DataSource, AutoCloseable {
 
-  DuckConnectionWrapper connection;
+  DuckDBConnection rootConnection;
 
   Supplier<String> urlSupplier = Suppliers.memoize(this::extractUrl);
+  PrintWriter logWriter = null;
 
   @Override
   public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-    // TODO Auto-generated method stub
-    return null;
+
+    throw new SQLFeatureNotSupportedException();
   }
 
   @Override
@@ -44,21 +46,28 @@ public class DuckDataSource implements DataSource, AutoCloseable {
     return false;
   }
 
+  public boolean isClosed() {
+    if (rootConnection == null) {
+      return true;
+    }
+    return true;
+  }
+
   @Override
   public Connection getConnection() throws SQLException {
 
-    if (connection == null) {
+    if (rootConnection == null) {
       throw new SQLException("dataSource is closed");
     }
-    return connection;
+    return rootConnection.duplicate();
   }
 
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
-    if (connection == null) {
+    if (rootConnection == null) {
       throw new SQLException("dataSource is closed");
     }
-    return connection;
+    return rootConnection.duplicate();
   }
 
   @Override
@@ -81,11 +90,10 @@ public class DuckDataSource implements DataSource, AutoCloseable {
     return 0;
   }
 
-  public void close() {
-
-    if (connection != null) {
-      connection.destroy();
-      connection = null;
+  public void close() throws SQLException {
+    if (rootConnection != null) {
+      rootConnection.close();
+      rootConnection = null;
     }
   }
 
@@ -112,17 +120,14 @@ public class DuckDataSource implements DataSource, AutoCloseable {
   public static DuckDataSource create(Connection c) {
 
     DuckDataSource ds = new DuckDataSource();
-    if (c instanceof DuckConnectionWrapper) {
-      ds.connection = (DuckConnectionWrapper) c;
-    } else {
-      ds.connection = new DuckConnectionWrapper(c);
-    }
+    ds.rootConnection = (DuckDBConnection) c;
+
     return ds;
   }
 
   private String extractUrl() {
     try {
-      return this.connection.getMetaData().getURL();
+      return this.rootConnection.getMetaData().getURL();
     } catch (SQLException e) {
       throw new DbException(e);
     }
