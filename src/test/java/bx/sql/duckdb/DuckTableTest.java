@@ -47,6 +47,15 @@ public class DuckTableTest extends BxTest {
   }
 
   @Test
+  public void testCreateTable() {
+    DuckTable t = loadAdsbTable("adsb");
+
+    String sql = t.getCreateTableSql();
+    System.out.println(sql);
+    Assertions.assertThat(sql).contains("true_heading DOUBLE");
+  }
+
+  @Test
   public void testGetTableNames() {
     var t1 = loadAdsbTable("t1");
     var t2 = loadAdsbTable("t2");

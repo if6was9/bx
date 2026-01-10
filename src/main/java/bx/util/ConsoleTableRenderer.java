@@ -59,10 +59,10 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
   }
 
   public String getStringValue(Results r, int i) {
-	  
-	  
-	  return r.getString(i).orElse("NULL");
+
+    return r.getString(i).orElse("NULL");
   }
+
   @Override
   public String extractData(ResultSet rs) throws SQLException, DataAccessException {
 
@@ -84,8 +84,8 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
       List<String> row = Lists.newArrayList();
       for (int i = 1; i <= cols; i++) {
 
-        String val = getStringValue(r,i);
-       
+        String val = getStringValue(r, i);
+
         row.add(val);
       }
 

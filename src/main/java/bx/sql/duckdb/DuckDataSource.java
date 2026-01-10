@@ -1,9 +1,11 @@
 package bx.sql.duckdb;
 
 import bx.sql.DbException;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.base.Suppliers;
 import java.io.File;
 import java.io.PrintWriter;
@@ -127,7 +129,13 @@ public class DuckDataSource implements DataSource, AutoCloseable {
 
   private String extractUrl() {
     try {
-      return this.rootConnection.getMetaData().getURL();
+      String url = this.rootConnection.getMetaData().getURL();
+      if (url == null) {
+        return url;
+      }
+      // query string may contain credentials, so strip it since this is just used for logging
+      return Splitter.on(CharMatcher.anyOf(";?")).splitToList(url).getFirst();
+
     } catch (SQLException e) {
       throw new DbException(e);
     }

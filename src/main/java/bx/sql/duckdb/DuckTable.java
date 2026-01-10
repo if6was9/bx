@@ -20,6 +20,7 @@ import javax.sql.DataSource;
 import org.duckdb.DuckDBAppender;
 import org.duckdb.DuckDBConnection;
 import org.slf4j.Logger;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
@@ -82,6 +83,16 @@ public class DuckTable {
 
   public void show() {
     prettyQuery().show();
+  }
+
+  public String getCreateTableSql() {
+    String sql = "select sql from duckdb_tables where table_name=:name";
+    Optional<String> createSql =
+        sql(sql).param("name", getTableName()).query(String.class).optional();
+    if (createSql.isEmpty()) {
+      throw new InvalidDataAccessResourceUsageException("table not found: " + getName());
+    }
+    return createSql.get();
   }
 
   public long rowCount() {
