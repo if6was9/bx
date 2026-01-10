@@ -1,6 +1,7 @@
 package bx.sql.duckdb;
 
 import bx.util.BxTest;
+import bx.util.RateCounter;
 import com.google.common.base.Stopwatch;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -10,6 +11,7 @@ import org.duckdb.DuckDBAppender;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.simple.JdbcClient;
 
 public class DuckTableTest extends BxTest {
   static Logger logger = bx.util.Slogger.forEnclosingClass();
@@ -195,6 +197,21 @@ public class DuckTableTest extends BxTest {
     // test idempotency
 
     t.drop();
+  }
+
+  @Test
+  public void testCreateJdbcClient() {
+
+    // verify that JdbcClient.create() is a low-cost operation
+    // this "test" is more for my understanding than a test per se
+
+    var c = RateCounter.create();
+    for (int i = 0; i < 10000; i++) {
+      JdbcClient.create(dataSource());
+      c.increment();
+    }
+    c.log();
+    Assertions.assertThat(c.getRate()).isGreaterThan(10000d);
   }
 
   @Test
