@@ -190,8 +190,11 @@ public class DuckTableTest extends BxTest {
     Assertions.assertThat(t.exists()).isTrue();
 
     t.drop();
-
     Assertions.assertThat(t.exists()).isFalse();
+
+    // test idempotency
+
+    t.drop();
   }
 
   @Test
