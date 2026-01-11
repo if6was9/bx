@@ -2,6 +2,7 @@ package bx.util;
 
 import bx.sql.duckdb.DuckTable;
 import com.google.common.base.Splitter;
+import com.google.common.hash.Hashing;
 import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.util.List;
@@ -208,8 +209,26 @@ public class ConsoleTableRendererTest extends BxTest {
   }
 
   @Test
-  public void testDefault() {
-    ConsoleTableRenderer ctr = new ConsoleTableRenderer();
-    Assertions.assertThat(ctr.maxRows).isEqualTo(ConsoleTableRenderer.DEFAULT_MAX_ROWS);
+  public void testRender() {
+
+    String s =
+        JdbcClient.create(dataSource())
+            .sql("select 123.456E-7 as foo")
+            .query(new ConsoleTableRenderer());
+    System.out.println(s);
+
+    String val = Hashing.sha256().hashBytes(new byte[0]).toString();
+
+    s =
+        JdbcClient.create(dataSource())
+            .sql("select '" + val + "' as foo")
+            .query(new ConsoleTableRenderer());
+    Assertions.assertThat(s).contains("b855  ");
+
+    s =
+        JdbcClient.create(dataSource())
+            .sql("select '" + (val + "XXX") + "' as foo")
+            .query(new ConsoleTableRenderer());
+    Assertions.assertThat(s).contains("b855...  ");
   }
 }

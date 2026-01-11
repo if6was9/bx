@@ -5,9 +5,11 @@ import bx.sql.Results;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -50,6 +52,8 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
   List<List<String>> topRows = Lists.newArrayList();
   List<List<String>> bottomRows = new LinkedList<List<String>>();
 
+  DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#########");
+
   public ConsoleTableRenderer() {}
 
   public ConsoleTableRenderer maxRows(int n) {
@@ -60,7 +64,13 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
 
   public String getStringValue(Results r, int i) {
 
-    return r.getString(i).orElse("NULL");
+    try {
+      Object obj = r.getResultSet().getObject(i);
+
+      return format(obj);
+    } catch (SQLException e) {
+      return "#ERR";
+    }
   }
 
   @Override
@@ -259,7 +269,7 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
         w.append(LEFT_BORDER);
         for (int c = 0; c < cols; c++) {
 
-          String val = Objects.toString(row.get(c));
+          String val = row.get(c);
           val = justify(val, c);
           val = String.format("  %s  ", val);
 
@@ -304,7 +314,7 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
 
         for (int c = 0; c < cols; c++) {
 
-          String val = Objects.toString(row.get(c));
+          String val = row.get(c);
           val = String.format("  %s  ", justify(val, c));
 
           w.append(val);
@@ -337,7 +347,7 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
       }
       {
 
-        // example: │ 1000 rows (40 shown)                        │
+        // example: │ 1000 rows (40 shown) │
         w.append(LEFT_BORDER);
 
         w.append("  ");
@@ -391,7 +401,8 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
 
   boolean footerFits(String footerText) {
     return footerText.length()
-        <= tableWidth - 6; // 4 = 1 left border, 1 right border, 2 left padding, 2 right padding
+        <= tableWidth - 6; // 4 = 1 left border, 1 right border, 2 left padding, 2 right
+    // padding
   }
 
   String getFooterRowText() {
@@ -424,5 +435,27 @@ public class ConsoleTableRenderer implements ResultSetExtractor<String> {
       return false;
     }
     return true;
+  }
+
+  String format(Object obj) {
+    if (obj == null) {
+      return "NULL";
+    } else if (obj instanceof Double) {
+      Double d = (Double) obj;
+      return DECIMAL_FORMAT.format(d);
+    } else if (obj instanceof Float) {
+      Float f = (Float) obj;
+      return DECIMAL_FORMAT.format(f);
+    } else if (obj instanceof BigDecimal) {
+      BigDecimal bd = (BigDecimal) obj;
+      return DECIMAL_FORMAT.format(bd);
+    }
+
+    int MAX_LEN = 64;
+    String stringVal = Objects.toString(obj);
+    if (stringVal.length() > MAX_LEN) {
+      stringVal = stringVal.substring(0, MAX_LEN) + "...";
+    }
+    return stringVal;
   }
 }
