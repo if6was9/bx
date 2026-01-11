@@ -264,7 +264,7 @@ public class DuckTableTest extends BxTest {
         0140441182,Thus Spoke Zarathustra,Friedrich Nietzsche
         """;
 
-    var t = DuckTable.of(dataSource(), "book").csv().fromString(csv).table("book").load();
+    var t = DuckTable.of(dataSource(), "book").csvImport().fromString(csv).table("book").load();
 
     Assertions.assertThat(t.getName()).isEqualTo("book");
     t.show();

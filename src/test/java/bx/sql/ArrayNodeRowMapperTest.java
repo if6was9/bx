@@ -1,6 +1,6 @@
 package bx.sql;
 
-import bx.sql.duckdb.DuckCsv;
+import bx.sql.duckdb.DuckCsvImport;
 import bx.sql.mapper.Mappers;
 import bx.util.BxTest;
 import org.assertj.core.api.Assertions;
@@ -19,7 +19,7 @@ public class ArrayNodeRowMapperTest extends BxTest {
         2,Rosie,2023-02-28,""
         """;
 
-    var table = DuckCsv.using(dataSource()).fromString(csv).load();
+    var table = DuckCsvImport.using(dataSource()).fromString(csv).load();
 
     var list =
         JdbcClient.create(dataSource())
