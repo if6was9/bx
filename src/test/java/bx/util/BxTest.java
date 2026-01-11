@@ -2,13 +2,14 @@ package bx.util;
 
 import bx.sql.Db;
 import bx.sql.PrettyQuery;
-import bx.sql.duckdb.DuckCsv;
+import bx.sql.duckdb.DuckCsvImport;
 import bx.sql.duckdb.DuckDataSource;
 import bx.sql.duckdb.DuckTable;
 import com.google.common.base.Stopwatch;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +49,7 @@ public abstract class BxTest {
 
     Stopwatch sw = Stopwatch.createStarted();
     try {
-      return DuckCsv.using(dataSource())
+      return DuckCsvImport.using(dataSource())
           .table(name)
           .from(new File("./src/test/resources/adsb.csv"))
           .load();
@@ -76,6 +77,14 @@ public abstract class BxTest {
   @BeforeEach
   final void setup() {
     Db.reset(db());
+  }
+
+  public File createTempDir() {
+    try {
+      return java.nio.file.Files.createTempDirectory("temp").toFile();
+    } catch (IOException e) {
+      throw new BxException(e);
+    }
   }
 
   PrettyQuery prettyQuery() {

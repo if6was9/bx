@@ -23,7 +23,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsv.using(dataSource()).fromString(csv).load();
+    DuckTable t = DuckCsvImport.using(dataSource()).fromString(csv).load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -43,7 +43,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsv.using(dataSource()).fromString(csv).load();
+    DuckTable t = DuckCsvImport.using(dataSource()).fromString(csv).load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -64,7 +64,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsv.using(dataSource()).fromString(csv).table("foo").load();
+    DuckTable t = DuckCsvImport.using(dataSource()).fromString(csv).table("foo").load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -82,7 +82,7 @@ public class DuckCsvTest extends BxTest {
     jdbc.sql("insert into test (name,age) values ('Homer',8)").update();
     jdbc.sql("insert into test (name,age) values ('Rosie',3)").update();
 
-    String out = DuckCsv.using(dataSource()).table("test").exportString();
+    String out = DuckCsvExport.using(dataSource()).table("test").exportString();
 
     var lines = CharSource.wrap(out).readLines();
 
@@ -91,8 +91,8 @@ public class DuckCsvTest extends BxTest {
     Assertions.assertThat(lines.get(2)).isEqualTo("Rosie,3");
 
     out =
-        DuckCsv.using(dataSource())
-            .sql("select * from test where age<:age", st -> st.param("age", 5))
+        DuckCsvExport.using(dataSource())
+            .select("select * from test where age<:age", st -> st.param("age", 5))
             .exportString();
 
     lines = CharSource.wrap(out).readLines();
@@ -124,35 +124,39 @@ public class DuckCsvTest extends BxTest {
     expect(
         NullPointerException.class,
         () -> {
-          DuckCsv.using((DataSource) null);
+          DuckCsvExport.using((DataSource) null);
         });
     expect(
         NullPointerException.class,
         () -> {
-          DuckCsv.using((DuckTable) null);
+          DuckCsvExport.using((DuckTable) null);
         });
     expect(
         NullPointerException.class,
         () -> {
-          new DuckCsv(null);
+          new DuckCsvExport((DataSource) null);
         });
-
     expect(
-        IllegalStateException.class,
+        NullPointerException.class,
         () -> {
-          DuckCsv.using(dataSource()).export();
+          new DuckCsvExport((DuckTable) null);
+        });
+    expect(
+        IllegalArgumentException.class,
+        () -> {
+          DuckCsvExport.using(dataSource()).export();
         });
 
     expect(
-        IllegalStateException.class,
+        IllegalArgumentException.class,
         () -> {
           File f = Files.createTempFile("temp", ".csv").toFile();
-          DuckCsv.using(dataSource()).to(f).export();
+          DuckCsvExport.using(dataSource()).to(f).export();
         });
     expect(
-        IllegalStateException.class,
+        IllegalArgumentException.class,
         () -> {
-          DuckCsv.using(dataSource()).load();
+          DuckCsvExport.using(dataSource()).export();
         });
   }
 }

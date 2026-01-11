@@ -229,10 +229,6 @@ public class DuckTable {
     }
   }
 
-  public DuckCsv csv() {
-    return DuckCsv.using(dataSource).table(this);
-  }
-
   public void addPrimaryKey(String... columns) {
 
     Preconditions.checkArgument(
@@ -247,6 +243,14 @@ public class DuckTable {
 
   public DuckTable table(String name) {
     return DuckTable.of(getDataSource(), name);
+  }
+
+  public DuckCsvExport csvExport() {
+    return new DuckCsvExport(this);
+  }
+
+  public DuckCsvImport csvImport() {
+    return new DuckCsvImport(this);
   }
 
   public String toString() {
