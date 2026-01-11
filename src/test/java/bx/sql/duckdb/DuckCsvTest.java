@@ -82,7 +82,7 @@ public class DuckCsvTest extends BxTest {
     jdbc.sql("insert into test (name,age) values ('Homer',8)").update();
     jdbc.sql("insert into test (name,age) values ('Rosie',3)").update();
 
-    String out = DuckCsvExport.using(dataSource()).table("test").exportString();
+    String out = DuckCsvExport.using(dataSource()).table("test").exportAsString();
 
     var lines = CharSource.wrap(out).readLines();
 
@@ -93,7 +93,7 @@ public class DuckCsvTest extends BxTest {
     out =
         DuckCsvExport.using(dataSource())
             .select("select * from test where age<:age", st -> st.param("age", 5))
-            .exportString();
+            .exportAsString();
 
     lines = CharSource.wrap(out).readLines();
 

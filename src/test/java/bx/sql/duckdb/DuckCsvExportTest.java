@@ -1,14 +1,19 @@
 package bx.sql.duckdb;
 
 import bx.util.BxTest;
+import bx.util.Slogger;
+import com.google.common.io.CharSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
 
 public class DuckCsvExportTest extends BxTest {
+
+  static Logger logger = Slogger.forEnclosingClass();
 
   @Test
   public void testIt() throws IOException {
@@ -81,5 +86,28 @@ public class DuckCsvExportTest extends BxTest {
         .export();
 
     // Assertions.assertThat(lines.size()).isEqualTo(161);
+  }
+
+  @Test
+  public void testExport() throws IOException {
+
+    var t = loadAdsbTable("adsb");
+
+    String s =
+        t.csvExport()
+            .select(
+                "select flight,ac_type from {{table}} where ac_type=:type order by flight",
+                c -> c.param("type", "B789"))
+            .exportAsString();
+
+    logger.atInfo().log("csv export: \n{}", s);
+    List<String> lines = CharSource.wrap(s).readLines();
+
+    Assertions.assertThat(lines.get(0)).isEqualTo("flight,ac_type");
+
+    Assertions.assertThat(lines.get(1)).isEqualTo("CHH7926,B789");
+    Assertions.assertThat(lines.get(2)).isEqualTo("CHH7926,B789");
+    Assertions.assertThat(lines.get(3)).isEqualTo("JAL062,B789");
+    Assertions.assertThat(lines.get(4)).isEqualTo("UAL153,B789");
   }
 }

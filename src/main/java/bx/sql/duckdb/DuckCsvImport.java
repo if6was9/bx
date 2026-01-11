@@ -6,6 +6,7 @@ import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -107,7 +108,24 @@ public class DuckCsvImport {
     throw new IllegalArgumentException("file or s3 bucket+key must be specified");
   }
 
-  public String toColumnSpec() {
+  public DuckCsvImport columns(String... cols) {
+    if (cols == null) {
+      return columns(List.of("*"));
+    }
+
+    this.columns = Lists.newArrayList(cols);
+    return this;
+  }
+
+  public DuckCsvImport columns(List<String> cols) {
+    if (cols == null || cols.isEmpty()) {
+      cols = List.of("*");
+    }
+    this.columns = cols;
+    return this;
+  }
+
+  String toColumnSpec() {
     if (this.columns == null || this.columns.isEmpty()) {
       return "*";
     }
@@ -144,7 +162,7 @@ public class DuckCsvImport {
 
       updateSql = updateSql + selectSql;
 
-      logger.atInfo().log("SQL: {}", updateSql);
+      logger.atDebug().log("SQL: {}", updateSql);
 
       BxJdbcClient.create(dataSource, table.getName()).sql(updateSql).update();
 

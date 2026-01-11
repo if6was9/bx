@@ -134,7 +134,7 @@ public class DuckCsvExport {
     buildStatement().update();
   }
 
-  public String exportString() {
+  public String exportAsString() {
     File tempOutputFile = null;
     try {
       tempOutputFile = Files.createTempFile("temp_", ".csv").toFile();
