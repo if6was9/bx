@@ -1,7 +1,7 @@
 package bx.sql.duckdb;
 
+import bx.sql.ConsoleQuery;
 import bx.sql.DbException;
-import bx.sql.PrettyQuery;
 import bx.sql.SqlUtil;
 import bx.util.S;
 import bx.util.Slogger;
@@ -210,8 +210,8 @@ public class DuckTable {
     return getJdbcClient().sql(sql).param("val", val).param("rowid", rowId).update();
   }
 
-  public PrettyQuery prettyQuery() {
-    return PrettyQuery.with(getJdbcClient()).table(getTableName());
+  public ConsoleQuery prettyQuery() {
+    return ConsoleQuery.with(getJdbcClient()).table(getTableName());
   }
 
   public DuckDBAppender createAppender() {

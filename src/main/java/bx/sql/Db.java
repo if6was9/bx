@@ -7,9 +7,12 @@ import bx.util.S;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -29,7 +32,7 @@ public class Db implements AutoCloseable {
 
   private String urlForToString;
 
-  public static Db get() {
+  public static Db getInstance() {
 
     return supplier.get();
   }
@@ -122,11 +125,53 @@ public class Db implements AutoCloseable {
     return new HikariConfig(props);
   }
 
+  public static Db create(DataSource ds) {
+    Db db = new Db(ds);
+    return db;
+  }
+
   public static void reset(Db db) {
     Db.supplier = Suppliers.ofInstance(db);
   }
 
-  public Db(DataSource dataSource) {
+  public static Db create(String url, String username, String password) {
+    if (url.startsWith("jdbc:duckdb:")) {
+
+      try {
+        Class<?> clazz = Class.forName("bx.sql.duckdb.DuckDataSource");
+
+        Method m = clazz.getDeclaredMethod("create", String.class);
+
+        DataSource ds = (DataSource) m.invoke(clazz, url);
+
+        Preconditions.checkNotNull(ds);
+
+        return new Db(ds);
+
+      } catch (ClassNotFoundException
+          | NoSuchMethodException
+          | IllegalAccessException
+          | InvocationTargetException e) {
+        throw new BxException(e);
+      }
+    }
+    HikariConfig cfg = new HikariConfig();
+    cfg.setJdbcUrl(url);
+    cfg.setAutoCommit(true);
+    cfg.setUsername(username);
+    cfg.setPassword(password);
+    DataSource ds = new HikariDataSource(cfg);
+
+    Db db = new Db(ds);
+
+    return db;
+  }
+
+  public static Db create(String url) {
+    return create(url, null, null);
+  }
+
+  Db(DataSource dataSource) {
     this.dataSource = dataSource;
     if (this.dataSource != null) {
       this.urlForToString = extractUrl(dataSource);
@@ -172,13 +217,17 @@ public class Db implements AutoCloseable {
     }
   }
 
+  public ConsoleQuery consoleQuery() {
+    return ConsoleQuery.with(getDataSource());
+  }
+
   public String toString() {
     ToStringHelper h = MoreObjects.toStringHelper(this);
 
     try {
       h.add("dataSource", dataSource);
     } catch (Throwable t) {
-
+      h.add("dataSource", "unknown");
     }
 
     h.add("url", urlForToString);
