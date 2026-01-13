@@ -26,7 +26,8 @@ public class ParallelConsumer<T> {
   AtomicBoolean started = new AtomicBoolean(false);
 
   AtomicInteger threadNameCount = new AtomicInteger();
-  String threadName="ParallelConsumer";
+  String threadName = "ParallelConsumer";
+
   public static <T> ParallelConsumer<T> create(Collection<T> src) {
 
     ParallelConsumer<T> p = new ParallelConsumer<T>();
@@ -40,11 +41,12 @@ public class ParallelConsumer<T> {
   }
 
   private String nextThreadName() {
-	  return String.format("%s-%s", this.threadName, threadNameCount.getAndIncrement());
+    return String.format("%s-%s", this.threadName, threadNameCount.getAndIncrement());
   }
+
   private void onThreadStart() {
-Thread.currentThread().setName(nextThreadName());
-System.out.println(Thread.currentThread());
+    Thread.currentThread().setName(nextThreadName());
+    System.out.println(Thread.currentThread());
     started.set(true);
     while (complete.get() == false && cancelled.get() == false) {
 
@@ -68,14 +70,15 @@ System.out.println(Thread.currentThread());
   }
 
   public ParallelConsumer<T> threadName(String name) {
-	  this.threadName = name;
-	  return this;
+    this.threadName = name;
+    return this;
   }
+
   public ParallelConsumer<T> threadCount(int threadCount) {
-	  this.threads = threadCount;
-	  return this;
+    this.threads = threadCount;
+    return this;
   }
-  
+
   public Future<ParallelConsumer<T>> consume(Consumer<T> consumer) {
     this.consumer = consumer;
     for (int i = 0; i < threads; i++) {

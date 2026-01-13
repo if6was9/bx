@@ -1,6 +1,6 @@
 package bx.sql.duckdb;
 
-import bx.sql.PrettyQuery;
+import bx.sql.ConsoleQuery;
 import com.google.common.base.Preconditions;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +25,7 @@ public class DuckAdmin {
   }
 
   public void showSettings() {
-    PrettyQuery.with(getJdbcClient()).select("select *  FROM duckdb_settings()");
+    ConsoleQuery.with(getJdbcClient()).select("select *  FROM duckdb_settings()");
   }
 
   public List<String> getTableNames() {

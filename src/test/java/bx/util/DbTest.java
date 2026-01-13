@@ -17,7 +17,7 @@ public class DbTest extends BxTest {
   public void testSame1() {
 
     Assertions.assertThat(db()).isSameAs(db());
-    Assertions.assertThat(Db.get()).isSameAs(db());
+    Assertions.assertThat(Db.getInstance()).isSameAs(db());
     Assertions.assertThat(db().getDataSource()).isSameAs(db().getDataSource());
     dbList.add(db());
   }
@@ -26,7 +26,7 @@ public class DbTest extends BxTest {
   public void testSame2() {
 
     Assertions.assertThat(db()).isSameAs(db());
-    Assertions.assertThat(Db.get()).isSameAs(db());
+    Assertions.assertThat(Db.getInstance()).isSameAs(db());
     Assertions.assertThat(db().getDataSource()).isSameAs(db().getDataSource());
     dbList.add(db());
   }
@@ -37,7 +37,7 @@ public class DbTest extends BxTest {
     Db db = db();
 
     Assertions.assertThat(db()).isSameAs(db);
-    Assertions.assertThat(Db.get()).isSameAs(db);
+    Assertions.assertThat(Db.getInstance()).isSameAs(db);
 
     Assertions.assertThat(db.getDataSource()).isSameAs(db().getDataSource());
   }
@@ -48,7 +48,7 @@ public class DbTest extends BxTest {
     Db db = db();
 
     Assertions.assertThat(db()).isSameAs(db);
-    Assertions.assertThat(Db.get()).isSameAs(db);
+    Assertions.assertThat(Db.getInstance()).isSameAs(db);
 
     Assertions.assertThat(db.getDataSource()).isSameAs(db().getDataSource());
   }
@@ -84,5 +84,13 @@ public class DbTest extends BxTest {
   public void testLoadAdsb() {
     loadAdsbTable("a");
     loadAdsbTable("b");
+  }
+
+  @Test
+  public void testDuckDb() {
+
+    Db db = Db.create("jdbc:duckdb:");
+    defer(db);
+    db.getJdbcClient().sql("select 1").query().optionalValue();
   }
 }

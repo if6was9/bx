@@ -16,7 +16,7 @@ import org.slf4j.event.Level;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
-public class PrettyQuery {
+public class ConsoleQuery {
 
   JdbcClient jdbc;
 
@@ -25,28 +25,28 @@ public class PrettyQuery {
   Logger logger = defaultLogger;
   Level level = defaultLevel;
 
-  static Logger defaultLogger = LoggerFactory.getLogger(PrettyQuery.class);
+  static Logger defaultLogger = LoggerFactory.getLogger(ConsoleQuery.class);
   static Level defaultLevel = Level.INFO;
 
   Writer outputWriter;
 
-  private PrettyQuery() {
+  private ConsoleQuery() {
     super();
   }
 
-  public static PrettyQuery with(DataSource ds) {
+  public static ConsoleQuery with(DataSource ds) {
     return with(JdbcClient.create(ds));
   }
 
-  public static PrettyQuery with(JdbcClient c) {
+  public static ConsoleQuery with(JdbcClient c) {
 
-    var q = new PrettyQuery();
+    var q = new ConsoleQuery();
     q.jdbc = c;
 
     return q;
   }
 
-  public PrettyQuery table(String name) {
+  public ConsoleQuery table(String name) {
     this.tableName = name;
     return this;
   }
@@ -59,7 +59,7 @@ public class PrettyQuery {
     return level;
   }
 
-  public PrettyQuery to(Logger logger) {
+  public ConsoleQuery to(Logger logger) {
     this.logger = logger;
     return this;
   }
@@ -95,26 +95,26 @@ public class PrettyQuery {
     }
   }
 
-  public PrettyQuery stderr() {
+  public ConsoleQuery stderr() {
     return out(System.err);
   }
 
-  public PrettyQuery stdout() {
+  public ConsoleQuery stdout() {
     return out(System.out);
   }
 
-  public PrettyQuery out(OutputStream out) {
+  public ConsoleQuery out(OutputStream out) {
     return out(new OutputStreamWriter(out));
   }
 
-  public PrettyQuery out(Writer out) {
+  public ConsoleQuery out(Writer out) {
 
     this.outputWriter = out;
 
     return this;
   }
 
-  public PrettyQuery out(Logger b, Level level) {
+  public ConsoleQuery out(Logger b, Level level) {
     Preconditions.checkNotNull(b);
     Preconditions.checkNotNull(level);
     this.logger = b;
@@ -122,7 +122,7 @@ public class PrettyQuery {
     return this;
   }
 
-  public PrettyQuery out(Logger b) {
+  public ConsoleQuery out(Logger b) {
     Preconditions.checkNotNull(b);
     this.logger = b;
     this.level = defaultLevel;
@@ -143,7 +143,7 @@ public class PrettyQuery {
   }
 
   public static synchronized void resetDefaultOutput() {
-    defaultLogger = LoggerFactory.getLogger(PrettyQuery.class);
+    defaultLogger = LoggerFactory.getLogger(ConsoleQuery.class);
     defaultLevel = Level.DEBUG;
   }
 
