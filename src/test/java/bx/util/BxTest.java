@@ -81,7 +81,7 @@ public abstract class BxTest {
     }
   }
 
-  ConsoleQuery prettyQuery() {
+  ConsoleQuery consoleQuery() {
     return ConsoleQuery.with(dataSource()).out(LoggerFactory.getLogger(getClass()));
   }
 

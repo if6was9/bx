@@ -162,7 +162,7 @@ public class DuckTableTest extends BxTest {
   public void testPrettySelect() {
     var t = loadAdsbTable("adsb");
 
-    t.prettyQuery().select();
+    t.consoleQuery().select();
   }
 
   @Test
@@ -234,22 +234,22 @@ public class DuckTableTest extends BxTest {
 
     x.close();
 
-    t.prettyQuery().select();
+    t.consoleQuery().select();
   }
 
   @Test
   public void testPrettySelectToStream() {
     var t = loadAdsbTable("adsb");
 
-    t.prettyQuery().select();
+    t.consoleQuery().select();
   }
 
   @Test
   public void testPrettySelectWihtLog() {
     var t = loadAdsbTable("adsb");
-    t.prettyQuery().select();
+    t.consoleQuery().select();
 
-    t.prettyQuery()
+    t.consoleQuery()
         .to(LoggerFactory.getLogger(getClass()))
         .select(c -> c.sql("select * from adsb where flight=:flight").param("flight", "N915CM"));
   }

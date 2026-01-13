@@ -78,11 +78,11 @@ public class DuckTable {
 
   public void describe() {
 
-    prettyQuery().select("describe {{table}}");
+    consoleQuery().select("describe {{table}}");
   }
 
   public void show() {
-    prettyQuery().show();
+    consoleQuery().show();
   }
 
   public String getCreateTableSql() {
@@ -210,7 +210,7 @@ public class DuckTable {
     return getJdbcClient().sql(sql).param("val", val).param("rowid", rowId).update();
   }
 
-  public ConsoleQuery prettyQuery() {
+  public ConsoleQuery consoleQuery() {
     return ConsoleQuery.with(getJdbcClient()).table(getTableName());
   }
 
