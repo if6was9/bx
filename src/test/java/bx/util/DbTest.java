@@ -2,14 +2,12 @@ package bx.util;
 
 import bx.sql.Db;
 import bx.sql.duckdb.DuckDataSource;
+import com.google.common.collect.Lists;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
-
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
 
 public class DbTest extends BxTest {
 

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
