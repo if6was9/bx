@@ -1,16 +1,5 @@
 package bx.sql;
 
-import bx.sql.duckdb.DuckDataSource;
-import bx.util.BxException;
-import bx.util.Config;
-import bx.util.S;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Suppliers;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -20,8 +9,23 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
+
 import javax.sql.DataSource;
+
 import org.springframework.jdbc.core.simple.JdbcClient;
+
+import com.google.common.base.CaseFormat;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import bx.sql.duckdb.DuckDataSource;
+import bx.util.BxException;
+import bx.util.Config;
+import bx.util.S;
 
 public class Db implements AutoCloseable {
 
@@ -40,6 +44,7 @@ public class Db implements AutoCloseable {
   static Db createStandard() {
 
     try {
+
       Config config = Config.get();
 
       var cfg = toHikariConfig(config);

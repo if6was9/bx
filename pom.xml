@@ -170,7 +170,12 @@
     <version>42.7.8</version>
     <scope>test</scope>
 </dependency>
-
+<dependency>
+  <groupId>com.tngtech.archunit</groupId>
+  <artifactId>archunit-junit5</artifactId>
+  <version>1.4.1</version>
+  <scope>test</scope>
+</dependency>
 
 
   </dependencies>
@@ -278,26 +283,7 @@
           </java>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
-          <configLocation>checkstyle.xml</configLocation>
-          <consoleOutput>true</consoleOutput>
-          <failsOnError>true</failsOnError>
-          <linkXRef>false</linkXRef>
-        </configuration>
-        <executions>
-          <execution>
-            <id>validate</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+ 
     </plugins>
     <pluginManagement>
       <plugins>

@@ -3,8 +3,10 @@ package bx.util;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.util.Lists;
+
 import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.Lists;
 
 public class AtMostTest {
 
