@@ -2,13 +2,14 @@ package bx.util;
 
 import bx.sql.duckdb.DuckTable;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.hash.Hashing;
 import com.google.common.io.CharSource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.util.Lists;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.simple.JdbcClient;
 

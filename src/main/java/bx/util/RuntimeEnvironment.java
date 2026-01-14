@@ -141,7 +141,7 @@ public class RuntimeEnvironment {
             try {
               return Desktop.isDesktopSupported();
             } catch (Exception e) {
-              e.printStackTrace();
+              logger.atInfo().setCause(e).log();
             }
             return false;
           });
