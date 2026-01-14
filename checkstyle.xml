@@ -21,7 +21,7 @@
 
   <property name="charset" value="UTF-8"/>
 
-  <property name="severity" value="${org.checkstyle.google.severity}" default="warning"/>
+  <property name="severity" value="${org.checkstyle.google.severity}" default="error"/>
 
   <property name="fileExtensions" value="java, properties, xml"/>
   <!-- Excludes all 'module-info.java' files              -->
@@ -42,9 +42,11 @@
 
   <module name="TreeWalker">
     <module name="IllegalImport">
+
       <property name="illegalPkgs" value="org.assertj.core.util,org.assertj.core.util.foo"/>
     </module>
     <module name="RegexpSinglelineJava">
+
   <property name="format" value="System\.out\.print(ln)?"/>
   <property name="message" value="Avoid using System.out.print/println, use a logger instead."/>
   <property name="ignoreComments" value="true"/>

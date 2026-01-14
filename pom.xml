@@ -256,7 +256,7 @@
               <trimTrailingWhitespace />
               <endWithNewline />
               <indent>
-                <tabs>true</tabs>
+                <spaces>true</spaces>
                 <spacesPerTab>4</spacesPerTab>
               </indent>
             </format>
@@ -268,7 +268,7 @@
 
             <!-- apply a specific flavor of google-java-format and reflow long strings -->
             <googleJavaFormat>
-              <version>1.25.2</version>
+              <version>1.33.0</version>
 
               <reflowLongStrings>true</reflowLongStrings>
               <formatJavadoc>false</formatJavadoc>

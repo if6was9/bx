@@ -46,7 +46,7 @@ public class ParallelConsumer<T> {
 
   private void onThreadStart() {
     Thread.currentThread().setName(nextThreadName());
-    System.out.println(Thread.currentThread());
+
     started.set(true);
     while (complete.get() == false && cancelled.get() == false) {
 
