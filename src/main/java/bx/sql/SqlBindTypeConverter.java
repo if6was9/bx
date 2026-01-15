@@ -252,7 +252,9 @@ public abstract class SqlBindTypeConverter {
         }
 
         Optional<OffsetDateTime> odt = Dates.asOffsetDateTime(sval);
+
         if (odt.isPresent()) {
+
           return odt.get();
         }
       }
