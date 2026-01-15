@@ -105,6 +105,11 @@
       <version>7.0.2</version>
     </dependency>
     <dependency>
+      <groupId>de.siegmar</groupId>
+      <artifactId>fastcsv</artifactId>
+      <version>4.1.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.duckdb</groupId>
       <artifactId>duckdb_jdbc</artifactId>
       <version>1.4.3.0</version>
@@ -149,33 +154,33 @@
       <scope>test</scope>
     </dependency>
 
-<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>testcontainers-postgresql</artifactId>
-    <version>2.0.3</version>
-    <scope>test</scope>
-</dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-postgresql</artifactId>
+      <version>2.0.3</version>
+      <scope>test</scope>
+    </dependency>
 
 
-<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>testcontainers-junit-jupiter</artifactId>
-    <version>2.0.3</version>
-    <scope>test</scope>
-</dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-junit-jupiter</artifactId>
+      <version>2.0.3</version>
+      <scope>test</scope>
+    </dependency>
 
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <version>42.7.8</version>
-    <scope>test</scope>
-</dependency>
-<dependency>
-  <groupId>com.tngtech.archunit</groupId>
-  <artifactId>archunit-junit5</artifactId>
-  <version>1.4.1</version>
-  <scope>test</scope>
-</dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.7.8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tngtech.archunit</groupId>
+      <artifactId>archunit-junit5</artifactId>
+      <version>1.4.1</version>
+      <scope>test</scope>
+    </dependency>
 
 
   </dependencies>
@@ -283,7 +288,7 @@
           </java>
         </configuration>
       </plugin>
- 
+
     </plugins>
     <pluginManagement>
       <plugins>
