@@ -1,12 +1,26 @@
 package bx.sql;
 
+import bx.util.Dates;
 import bx.util.S;
 import bx.util.Slogger;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
+import org.springframework.asm.Type;
 
 public abstract class SqlBindTypeConverter {
 
@@ -18,6 +32,13 @@ public abstract class SqlBindTypeConverter {
   static SqlBindTypeConverter FLOAT_CONVERTER = new FloatConverter();
   static SqlBindTypeConverter DECIMAL_CONVERTER = new DecimalConverter();
   static SqlBindTypeConverter INTEGER_CONVERTER = new IntegerConverter();
+  static SqlBindTypeConverter DATE_CONVERTER = new DateConverter();
+  static SqlBindTypeConverter TIME_CONVERTER = new TimeConverter();
+  static SqlBindTypeConverter TIMESTAMP_CONVERTER = new TimestampConverter();
+  static SqlBindTypeConverter TIMESTAMP_WITH_TIMEZONE_CONVERTER =
+      new TimestampWithTimezoneConverter();
+  static DateTimeFormatter YYMMDD = DateTimeFormatter.ofPattern("YYMMDD");
+  static DateTimeFormatter YYYYMMDD = DateTimeFormatter.ofPattern("YYYYMMDD");
 
   public abstract Object doConvert(Object val);
 
@@ -33,28 +54,42 @@ public abstract class SqlBindTypeConverter {
     if (val == null) {
       return val;
     }
-    if (type == Types.CHAR
-        || type == Types.VARCHAR
-        || type == Types.NVARCHAR
-        || type == Types.LONGNVARCHAR
-        || type == Types.LONGVARCHAR) {
-      return STRING_CONVERTER.convert(val);
+
+    switch (type) {
+      case Types.CHAR:
+      case Types.VARCHAR:
+      case Types.NVARCHAR:
+      case Types.LONGVARCHAR:
+      case Types.LONGNVARCHAR:
+        return STRING_CONVERTER.convert(val);
+      case Types.BOOLEAN:
+        return BOOLEAN_CONVERTER.convert(val);
+
+      case Type.DOUBLE:
+        return DOUBLE_CONVERTER.convert(val);
+      case Type.FLOAT:
+        return FLOAT_CONVERTER.convert(val);
+      case Types.DECIMAL:
+      case Types.NUMERIC:
+        return DECIMAL_CONVERTER.convert(val);
+      case Types.INTEGER:
+        return INTEGER_CONVERTER.convert(val);
+
+      case Types.DATE:
+        return DATE_CONVERTER.convert(val);
+      case Types.TIME:
+        return TIME_CONVERTER.convert(val);
+      case Types.TIME_WITH_TIMEZONE:
+      case Types.TIMESTAMP:
+        return TIMESTAMP_CONVERTER.convert(val);
+      case Types.TIMESTAMP_WITH_TIMEZONE:
+        return TIMESTAMP_WITH_TIMEZONE_CONVERTER.convert(val);
     }
-    if (type == Types.BOOLEAN) {
-      return BOOLEAN_CONVERTER.convert(val);
+
+    if (val instanceof String && S.isBlank((String) val)) {
+      return null;
     }
-    if (type == Types.DOUBLE) {
-      return DOUBLE_CONVERTER.convert(val);
-    }
-    if (type == Types.FLOAT) {
-      return FLOAT_CONVERTER.convert(val);
-    }
-    if (type == Types.DECIMAL) {
-      return DECIMAL_CONVERTER.convert(val);
-    }
-    if (type == Types.INTEGER) {
-      return INTEGER_CONVERTER.convert(val);
-    }
+
     logger.atWarn().log("unhandled sql type: {}", type);
     return val;
   }
@@ -115,6 +150,137 @@ public abstract class SqlBindTypeConverter {
       }
       return val;
     }
+  }
+
+  public static class DateConverter extends SqlBindTypeConverter {
+    public Object doConvert(Object val) {
+      if (val == null) {
+        return val;
+      } else if (val instanceof java.sql.Date) {
+        return val;
+      } else if (val instanceof java.sql.Timestamp) {
+        Timestamp ts = (Timestamp) val;
+        return java.sql.Date.valueOf(ts.toLocalDateTime().toLocalDate());
+      } else if (val instanceof java.util.Date) {
+        Date d = (Date) val;
+        return java.sql.Date.valueOf(d.toString());
+
+      } else if (val instanceof String) {
+
+        String sval = (String) val;
+        if (S.isBlank(sval)) {
+          return null;
+        }
+        Optional<LocalDate> localDate = parseLocalDate((String) val);
+        if (localDate.isPresent()) {
+          return java.sql.Date.valueOf(localDate.get());
+        }
+      }
+      return val;
+    }
+  }
+
+  public static class TimeConverter extends SqlBindTypeConverter {
+    public Object doConvert(Object val) {
+
+      if (val == null) {
+        return val;
+      } else if (val instanceof java.sql.Time) {
+        return val;
+      } else if (val instanceof java.sql.Timestamp) {
+        Timestamp ts = (Timestamp) val;
+
+        return java.sql.Time.valueOf(ts.toLocalDateTime().toLocalTime());
+      } else if (val instanceof String) {
+
+        String sval = (String) val;
+        if (S.isBlank(sval)) {
+          return null;
+        }
+        Optional<LocalTime> localTime = Dates.asLocalTime((String) val);
+
+        if (localTime.isPresent()) {
+          return java.sql.Time.valueOf(localTime.get());
+        }
+      }
+      return val;
+    }
+  }
+
+  public static class TimestampConverter extends SqlBindTypeConverter {
+    public Object doConvert(Object val) {
+
+      if (val == null) {
+        return val;
+      } else if (val instanceof java.sql.Timestamp) {
+        return val;
+      } else if (val instanceof String) {
+
+        String sval = (String) val;
+        if (S.isBlank(sval)) {
+          return null;
+        }
+        Optional<LocalDateTime> localDateTime = Dates.asLocalDateTime((String) val);
+
+        if (localDateTime.isPresent()) {
+          return java.sql.Timestamp.valueOf(localDateTime.get());
+        }
+      }
+      return val;
+    }
+  }
+
+  public static class TimestampWithTimezoneConverter extends SqlBindTypeConverter {
+    public Object doConvert(Object val) {
+
+      if (val == null) {
+        return val;
+      } else if (val instanceof OffsetDateTime) {
+        return val;
+      } else if (val instanceof ZonedDateTime) {
+        ZonedDateTime zdt = (ZonedDateTime) val;
+        return zdt.toOffsetDateTime();
+      } else if (val instanceof Instant) {
+        ((Instant) val).atOffset(ZoneOffset.UTC);
+      } else if (val instanceof Timestamp) {
+        ((Timestamp) val).toInstant().atOffset(ZoneOffset.UTC);
+      } else if (val instanceof String) {
+
+        String sval = (String) val;
+        if (S.isBlank(sval)) {
+          return null;
+        }
+
+        Optional<OffsetDateTime> odt = Dates.asOffsetDateTime(sval);
+        if (odt.isPresent()) {
+          return odt.get();
+        }
+      }
+      return val;
+    }
+  }
+
+  public Optional<LocalDate> parseLocalDate(String val) {
+    if (S.isBlank(val)) {
+      return Optional.empty();
+    }
+
+    if (val.length() > 10) {
+      val = val.substring(0, 10);
+    }
+    Optional<TemporalAccessor> ta =
+        Dates.parse(
+            val,
+            DateTimeFormatter.BASIC_ISO_DATE,
+            DateTimeFormatter.ISO_LOCAL_DATE,
+            DateTimeFormatter.ISO_DATE,
+            YYMMDD,
+            YYYYMMDD);
+    if (ta.isPresent()) {
+      return Optional.of(LocalDate.from(ta.get()));
+    }
+
+    return Optional.empty();
   }
 
   public static class FloatConverter extends SqlBindTypeConverter {

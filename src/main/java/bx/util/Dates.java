@@ -5,10 +5,13 @@ import com.google.common.collect.Lists;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,10 +112,6 @@ public class Dates {
     }
 
     return Optional.empty();
-  }
-
-  public static Optional<LocalDateTime> asLocalDateTime(String s) {
-    return asLocalDateTime(s, false);
   }
 
   private static Optional<LocalDateTime> asLocalDateTime(String s, boolean reentrant) {
@@ -281,6 +280,123 @@ public class Dates {
       }
     } catch (Exception e) {
 
+    }
+
+    return Optional.empty();
+  }
+
+  //// Everything after this point is NEW
+
+  public static Optional<TemporalAccessor> parse(String input, DateTimeFormatter... formatters) {
+    if (formatters == null) {
+      return Optional.empty();
+    }
+    if (S.isBlank(input)) {
+      return Optional.empty();
+    }
+
+    for (DateTimeFormatter dtf : formatters) {
+      try {
+        TemporalAccessor ta = dtf.parse(input);
+        if (ta != null) {
+          return Optional.of(ta);
+        }
+      } catch (Exception e) {
+        // ignore
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  public static Optional<LocalDateTime> asLocalDateTime(TemporalAccessor ta) {
+    if (ta == null) {
+      return Optional.empty();
+    }
+    try {
+      LocalDateTime t = LocalDateTime.from(ta);
+      return Optional.ofNullable(t);
+    } catch (Exception ignore) {
+
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<OffsetDateTime> asOffsetDateTime(String input) {
+    Optional<ZonedDateTime> dt = asZonedDateTime(input);
+    if (dt.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(dt.get().toOffsetDateTime());
+  }
+
+  public static Optional<OffsetDateTime> asOffsetDateTime(TemporalAccessor ta) {
+    Optional<ZonedDateTime> dt = asZonedDateTime(ta);
+    if (dt.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(dt.get().toOffsetDateTime());
+  }
+
+  public static Optional<ZonedDateTime> asZonedDateTime(TemporalAccessor ta) {
+
+    if (ta == null) {
+      return Optional.empty();
+    }
+    try {
+      ZonedDateTime t = ZonedDateTime.from(ta);
+      return Optional.ofNullable(t);
+    } catch (Exception ignore) {
+
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<LocalTime> asLocalTime(TemporalAccessor ta) {
+    if (ta == null) {
+      return Optional.empty();
+    }
+    try {
+      LocalTime t = LocalTime.from(ta);
+      return Optional.ofNullable(t);
+    } catch (Exception ignore) {
+
+    }
+    return Optional.empty();
+  }
+
+  public static Optional<LocalDateTime> asLocalDateTime(String val) {
+    if (S.isBlank(val)) {
+      return Optional.empty();
+    }
+
+    Optional<TemporalAccessor> ta = parse(val, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    if (ta.isPresent()) {
+      return asLocalDateTime(ta.get());
+    }
+
+    Optional<ZonedDateTime> dt = asZonedDateTime(val);
+    if (dt.isPresent()) {
+      return Optional.of(dt.get().toLocalDateTime());
+    }
+
+    return Optional.empty();
+  }
+
+  public static Optional<LocalTime> asLocalTime(String val) {
+
+    if (S.isBlank(val)) {
+      return Optional.empty();
+    }
+
+    Optional<TemporalAccessor> ta = parse(val, DateTimeFormatter.ISO_LOCAL_TIME);
+    if (ta.isPresent()) {
+      return asLocalTime(ta.get());
+    }
+
+    ta = parse(val, DateTimeFormatter.ISO_DATE_TIME, DateTimeFormatter.ISO_INSTANT);
+    if (ta.isPresent()) {
+      return asLocalTime(ta.get());
     }
 
     return Optional.empty();

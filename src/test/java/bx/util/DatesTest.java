@@ -5,8 +5,13 @@ import static bx.util.Dates.parseNumeric;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +28,7 @@ public class DatesTest {
 
   @Test
   public void testX() {
-    Assertions.assertThat(Dates.asZonedDateTime(null)).isEmpty();
+    Assertions.assertThat(Dates.asZonedDateTime((String) null)).isEmpty();
     Assertions.assertThat(Dates.asZonedDateTime("")).isEmpty();
     Assertions.assertThat(Dates.asZonedDateTime("   ")).isEmpty();
 
@@ -152,5 +157,76 @@ public class DatesTest {
     Assertions.assertThat(Dates.asLocalDate("" + ts).get().toString()).isEqualTo("2025-02-03");
     Assertions.assertThat(Dates.asLocalDate("" + 1738543678L).get().toString())
         .isEqualTo("2025-02-03");
+  }
+
+  @Test
+  public void testAsLocalTime() {
+    Assertions.assertThat(Dates.asLocalTime("")).isEmpty();
+    Assertions.assertThat(Dates.asLocalTime((TemporalAccessor) null)).isEmpty();
+    Assertions.assertThat(Dates.asLocalTime("13:12:22").get()).isEqualTo(LocalTime.of(13, 12, 22));
+    Assertions.assertThat(Dates.asLocalTime("13:12").get()).isEqualTo(LocalTime.of(13, 12, 0));
+    Assertions.assertThat(Dates.asLocalTime("13:12:22.2").get())
+        .isEqualTo(LocalTime.of(13, 12, 22, 200000000));
+    Assertions.assertThat(Dates.asLocalTime("2026-03-01T13:12:22").get())
+        .isEqualTo(LocalTime.of(13, 12, 22));
+    Assertions.assertThat(Dates.asLocalTime("2026-03-01T13:12:22Z").get())
+        .isEqualTo(LocalTime.of(13, 12, 22));
+    Assertions.assertThat(Dates.asLocalTime("2026-03-01T13:12:22+04:00").get())
+        .isEqualTo(LocalTime.of(13, 12, 22));
+    Assertions.assertThat(Dates.asLocalTime("2026-03-01T13:12:22-04:00").get())
+        .isEqualTo(LocalTime.of(13, 12, 22));
+  }
+
+  @Test
+  public void testAsLocalDateTime() {
+    Assertions.assertThat(Dates.asLocalDateTime("")).isEmpty();
+    Assertions.assertThat(Dates.asLocalDateTime((TemporalAccessor) null)).isEmpty();
+    Assertions.assertThat(Dates.asLocalDateTime("13:12:22")).isEmpty();
+    Assertions.assertThat(Dates.asLocalDateTime("13:12")).isEmpty();
+    Assertions.assertThat(Dates.asLocalDateTime("13:12:22.2")).isEmpty();
+    Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22").get())
+        .isEqualTo(LocalDateTime.of(2026, 3, 01, 13, 12, 22));
+    Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22Z").get())
+        .isEqualTo(LocalDateTime.of(2026, 3, 1, 13, 12, 22));
+    Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22+04:00").get())
+        .isEqualTo(LocalDateTime.of(2026, 3, 1, 13, 12, 22));
+    Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22-04:00").get())
+        .isEqualTo(LocalDateTime.of(2026, 3, 01, 13, 12, 22));
+  }
+
+  @Test
+  public void testAsZonedDateTime() {
+    Assertions.assertThat(Dates.asZonedDateTime("")).isEmpty();
+    Assertions.assertThat(Dates.asZonedDateTime((TemporalAccessor) null)).isEmpty();
+    Assertions.assertThat(Dates.asZonedDateTime("13:12:22")).isEmpty();
+    Assertions.assertThat(Dates.asZonedDateTime("13:12")).isEmpty();
+    Assertions.assertThat(Dates.asZonedDateTime("13:12:22.2")).isEmpty();
+    Assertions.assertThat(Dates.asZonedDateTime("2026-03-01T13:12:22")).isEmpty();
+
+    ZonedDateTime expected = ZonedDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.UTC);
+
+    Assertions.assertThat(Dates.asZonedDateTime("2026-03-01T13:12:22Z").get()).isEqualTo(expected);
+    Assertions.assertThat(Dates.asZonedDateTime("2026-03-01T13:12:22+04:00").get())
+        .isEqualTo(ZonedDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.ofHours(4)));
+    Assertions.assertThat(Dates.asZonedDateTime("2026-03-01T13:12:22-04:00").get())
+        .isEqualTo(ZonedDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.ofHours(-4)));
+  }
+
+  @Test
+  public void testAsOffsetDateTime() {
+    Assertions.assertThat(Dates.asOffsetDateTime("")).isEmpty();
+    Assertions.assertThat(Dates.asOffsetDateTime((TemporalAccessor) null)).isEmpty();
+    Assertions.assertThat(Dates.asOffsetDateTime("13:12:22")).isEmpty();
+    Assertions.assertThat(Dates.asOffsetDateTime("13:12")).isEmpty();
+    Assertions.assertThat(Dates.asOffsetDateTime("13:12:22.2")).isEmpty();
+    Assertions.assertThat(Dates.asOffsetDateTime("2026-03-01T13:12:22")).isEmpty();
+
+    OffsetDateTime expected = OffsetDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.UTC);
+
+    Assertions.assertThat(Dates.asOffsetDateTime("2026-03-01T13:12:22Z").get()).isEqualTo(expected);
+    Assertions.assertThat(Dates.asOffsetDateTime("2026-03-01T13:12:22+04:00").get())
+        .isEqualTo(OffsetDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.ofHours(4)));
+    Assertions.assertThat(Dates.asOffsetDateTime("2026-03-01T13:12:22-04:00").get())
+        .isEqualTo(OffsetDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.ofHours(-4)));
   }
 }
