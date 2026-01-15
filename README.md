@@ -93,7 +93,7 @@ c.sql("create table book( name varchar(30), author varchar(30))").update();
 		c.sql("insert into book (name,author) values (:name,:author)").param("name", "Moby Dick")
 				.param("author", "Herman Melville").update();
 
-		t.selectPretty(System.out);
+		t.show();
 ```
 
 ```shell
@@ -124,7 +124,7 @@ appender.endRow();
 
 appender.close();
 		
-t.selectPretty(System.out);
+t.show();
 ```
 
 Output:
