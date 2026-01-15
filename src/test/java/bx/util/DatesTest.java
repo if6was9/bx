@@ -21,7 +21,6 @@ public class DatesTest {
   public void testIt() {
     ZonedDateTime dt = ZonedDateTime.now();
 
-    System.out.println(dt.toString());
     Assertions.assertThat(Dates.asZonedDateTime(dt.toString()).get().toEpochSecond())
         .isEqualTo(dt.toEpochSecond());
   }
@@ -186,12 +185,13 @@ public class DatesTest {
     Assertions.assertThat(Dates.asLocalDateTime("13:12:22.2")).isEmpty();
     Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22").get())
         .isEqualTo(LocalDateTime.of(2026, 3, 01, 13, 12, 22));
-    Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22Z").get())
-        .isEqualTo(LocalDateTime.of(2026, 3, 1, 13, 12, 22));
+
     Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22+04:00").get())
         .isEqualTo(LocalDateTime.of(2026, 3, 1, 13, 12, 22));
     Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22-04:00").get())
         .isEqualTo(LocalDateTime.of(2026, 3, 01, 13, 12, 22));
+    Assertions.assertThat(Dates.asLocalDateTime("2026-03-01T13:12:22Z").get())
+        .isEqualTo(LocalDateTime.of(2026, 3, 1, 13, 12, 22));
   }
 
   @Test

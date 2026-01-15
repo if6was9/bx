@@ -42,39 +42,21 @@ public class Dates {
     return Optional.of(x.get().toInstant());
   }
 
-  public static Optional<ZonedDateTime> asZonedDateTime(String s) {
-    return asZonedDateTime(s, false);
-  }
-
   public static Optional<ZonedDateTime> asZonedDateTime(String s, DateTimeFormatter f) {
-    if (S.isBlank(s)) {
+
+    Optional<TemporalAccessor> ta = parse(s, f);
+    if (ta.isEmpty()) {
       return Optional.empty();
     }
-    if (f == null) {
-      try {
-        ZonedDateTime dt = ZonedDateTime.parse(s);
-        return Optional.of(dt);
-      } catch (Exception e) {
-        return Optional.empty();
-      }
-    }
-    try {
-      ZonedDateTime dt = ZonedDateTime.parse(s, f);
-      return Optional.ofNullable(dt);
-    } catch (Exception ignore) {
 
-    }
-    return Optional.empty();
+    return asZonedDateTime(ta.get());
   }
 
   public static Optional<LocalDate> asLocalDate(String s) {
-    return asLocalDate(s, false);
-  }
-
-  private static Optional<LocalDate> asLocalDate(String s, boolean reentrant) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
+
     try {
       LocalDate dt =
           LocalDate.parse(
@@ -100,13 +82,13 @@ public class Dates {
 
     }
 
-    Optional<LocalDateTime> dt = asLocalDateTime(s, true);
+    Optional<LocalDateTime> dt = asLocalDateTime(s);
     if (dt.isPresent()) {
       return Optional.of(
           LocalDate.of(dt.get().getYear(), dt.get().getMonthValue(), dt.get().getDayOfMonth()));
     }
 
-    Optional<ZonedDateTime> zdt = asZonedDateTime(s, true);
+    Optional<ZonedDateTime> zdt = asZonedDateTime(s);
     if (zdt.isPresent()) {
       return Optional.of(zdt.get().toLocalDate());
     }
@@ -114,11 +96,12 @@ public class Dates {
     return Optional.empty();
   }
 
-  private static Optional<LocalDateTime> asLocalDateTime(String s, boolean reentrant) {
-    if (S.isBlank(s)) {
+  public static Optional<LocalDateTime> asLocalDateTime(final String input) {
+    if (S.isBlank(input)) {
       return Optional.empty();
     }
 
+    String s = input;
     // hack!!!
     if (s.endsWith(".000000Z")) {
       s = s.replace(".000000Z", "");
@@ -150,6 +133,11 @@ public class Dates {
 
     }
 
+    Optional<ZonedDateTime> zdt = asZonedDateTime(input);
+    if (zdt.isPresent()) {
+      return Optional.ofNullable(zdt.get().toLocalDateTime());
+    }
+
     return Optional.empty();
   }
 
@@ -163,15 +151,11 @@ public class Dates {
     return Optional.of(dt.withZoneSameInstant(zone));
   }
 
-  private static Optional<ZonedDateTime> asZonedDateTime(String s, boolean reentrant) {
-    return asZonedDateTime(s, (ZoneId) null, reentrant);
+  public static Optional<ZonedDateTime> asZonedDateTime(String s) {
+    return asZonedDateTime(s, (ZoneId) null);
   }
 
   public static Optional<ZonedDateTime> asZonedDateTime(String s, ZoneId zone) {
-    return asZonedDateTime(s, zone, false);
-  }
-
-  private static Optional<ZonedDateTime> asZonedDateTime(String s, ZoneId zone, boolean reentrant) {
 
     if (S.isBlank(s)) {
       return Optional.empty();
@@ -197,20 +181,17 @@ public class Dates {
       return Optional.empty();
     }
 
-    if (reentrant == false) {
-      Optional<LocalDateTime> ldt = asLocalDateTime(s, true);
-      if (ldt.isPresent()) {
-        return Optional.of(ldt.get().atZone(zone));
-      }
+    Optional<LocalDateTime> ldt = asLocalDateTime(s);
+    if (ldt.isPresent()) {
+      return Optional.of(ldt.get().atZone(zone));
+    }
 
-      Optional<LocalDate> ldo = asLocalDate(s, true);
-      if (ldo.isPresent()) {
-        LocalDate ld = ldo.get();
-        ZonedDateTime zdt =
-            ZonedDateTime.of(
-                ld.getYear(), ld.getMonthValue(), ld.getDayOfMonth(), 0, 0, 0, 0, zone);
-        return Optional.of(zdt);
-      }
+    Optional<LocalDate> ldo = asLocalDate(s);
+    if (ldo.isPresent()) {
+      LocalDate ld = ldo.get();
+      ZonedDateTime zdt =
+          ZonedDateTime.of(ld.getYear(), ld.getMonthValue(), ld.getDayOfMonth(), 0, 0, 0, 0, zone);
+      return Optional.of(zdt);
     }
 
     return Optional.empty();
@@ -296,13 +277,16 @@ public class Dates {
     }
 
     for (DateTimeFormatter dtf : formatters) {
-      try {
-        TemporalAccessor ta = dtf.parse(input);
-        if (ta != null) {
-          return Optional.of(ta);
+
+      if (dtf != null) {
+        try {
+          TemporalAccessor ta = dtf.parse(input);
+          if (ta != null) {
+            return Optional.of(ta);
+          }
+        } catch (Exception e) {
+          // ignore
         }
-      } catch (Exception e) {
-        // ignore
       }
     }
 
@@ -365,7 +349,7 @@ public class Dates {
     return Optional.empty();
   }
 
-  public static Optional<LocalDateTime> asLocalDateTime(String val) {
+  public static Optional<LocalDateTime> asLocalDateTimeXXX(String val) {
     if (S.isBlank(val)) {
       return Optional.empty();
     }
