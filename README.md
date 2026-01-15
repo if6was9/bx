@@ -11,6 +11,57 @@ BX is a collection of frequently-used utility code.  It integrates the following
 * [HikariCP](https://github.com/brettwooldridge/HikariCP/blob/dev/README.md)
 * [DuckDB](https://duckdb.org)
 
+# SQL Support
+
+BX does a few things to make working with SQL databases simple.
+
+## DB Access
+
+Setting up pooled database access is very easy.  Set `DB_URL`, `DB_USERNAME` and `DB_PASSWORD` as environmental variables and you will have access to a pooled DataSource backed by Hikari.
+
+```shell
+export DB_URL=jdbc:postgresql://host/database
+export DB_USERNAME=mydbuser
+export DB_PASSWORD=mypassword
+```
+
+The database is then accessible 
+```java
+var db = Db.getInstance();
+var dataSource = db.getDataSource();
+```
+
+## Console Query
+
+ ConsoleQuery.withDefaultDb().select("select * from actor");
+
+ ```
+┌───────────┬─────────────────────┐
+│    id     │        name         │
+│  integer  │       varchar       │
+├───────────┼─────────────────────┤
+│        1  │  Leonardo DiCaprio  │
+│        2  │  Chase Infiniti     │
+│        3  │  Benicio del Toro   │
+└───────────┴─────────────────────┘
+```
+
+Console query has fluent integration with Spring JDBC.  For instance:
+
+```java
+    ConsoleQuery.withDefaultDb()
+        .select(c -> c.sql("Select * from actor where id=:id").param("id", 1));
+```
+will generate:
+```
+┌───────────┬─────────────────────┐
+│    id     │        name         │
+│  integer  │       varchar       │
+├───────────┼─────────────────────┤
+│        1  │  Leonardo DiCaprio  │
+└───────────┴─────────────────────┘
+```
+
 
 # DuckDB Support
 
