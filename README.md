@@ -92,6 +92,27 @@ or from a file:
 CsvImport.into(dataSource).from(new File("data.csv").table("actor").importData();
 ```
 
+## CSV Export
+
+
+The fillowing will export some data to a CSV:
+
+```java
+    CsvExport.from(dataSource())
+        .to(new File("./output.csv"))
+        .sql(
+            c ->
+                c.sql("select flight,ac_reg from adsb where flight=:flight")
+                    .param("flight", "SWA3880"))
+        .export();
+```
+
+If the data is small and you want it in a String:
+
+```java
+ var output = CsvExport.from(dataSource())
+        .sql(c -> c.sql("select flight,ac_reg from adsb where flight=:flight").param("flight", "SWA3880")).exportToString();
+```
 
 # DuckDB Support
 
