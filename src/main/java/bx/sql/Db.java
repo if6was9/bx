@@ -32,9 +32,13 @@ public class Db implements AutoCloseable {
 
   private String urlForToString;
 
+  
+  public static Db get() {
+    return supplier.get();
+  }
   public static Db getInstance() {
 
-    return supplier.get();
+    return get();
   }
 
   static Db createStandard() {
