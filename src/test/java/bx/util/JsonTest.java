@@ -2,7 +2,6 @@ package bx.util;
 
 import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -143,23 +142,6 @@ public class JsonTest {
     Assertions.assertThat(Json.asArrayNode(MissingNode.getInstance())).isEmpty();
     Assertions.assertThat(Json.asArrayNode(NullNode.getInstance())).isEmpty();
     Assertions.assertThat(Json.asArrayNode(StringNode.valueOf("hello"))).isEmpty();
-  }
-
-  @Test
-  public void testRemove() {
-
-    ObjectNode n = Json.createObjectNode();
-    for (int i = 0; i < 10; i++) {
-      n.put("p" + i, i);
-    }
-
-    Random rand = new Random();
-    java.util.List<String> toRemove =
-        n.propertyNames().stream().filter(p -> rand.nextBoolean()).toList();
-
-    Json.removeProperties(n, p -> toRemove.contains(p));
-
-    Assertions.assertThat(n.propertyNames()).doesNotContainAnyElementsOf(toRemove);
   }
 
   @Test

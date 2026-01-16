@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import tools.jackson.databind.JsonNode;
@@ -159,6 +158,9 @@ public class Json {
     }
   }
 
+  public static Optional<ObjectNode> asObject(JsonNode input) {
+    return asObjectNode(input);
+  }
   public static Optional<ObjectNode> asObjectNode(JsonNode input) {
     if (input == null) {
       return Optional.empty();
@@ -169,6 +171,9 @@ public class Json {
     return Optional.empty();
   }
 
+  public static Optional<ArrayNode> asArray(JsonNode input) {
+    return asArrayNode(input);
+  }
   public static Optional<ArrayNode> asArrayNode(JsonNode input) {
     if (input == null) {
       return Optional.empty();
@@ -178,13 +183,6 @@ public class Json {
     }
 
     return Optional.empty();
-  }
-
-  public static ObjectNode removeProperties(ObjectNode n, Predicate<String> predicate) {
-
-    // the extra toList() ensures that we don't have a ConcurrentModificationException
-    n.propertyNames().stream().filter(predicate).toList().forEach(p -> n.remove(p));
-    return n;
   }
 
   public static void traverse(JsonNode n, Consumer<JsonNode> consumer) {
