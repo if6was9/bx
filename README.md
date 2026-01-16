@@ -68,6 +68,30 @@ This is equivalent if you find it cleaner:
     ConsoleQuery.withDefaultDb()
     .select("Select * from actor where id=:id",c->c.param("id", 1));
 ```
+## CSV Import
+
+This simple example will create a table and import 3 rows.  Very useful for tests.
+```
+ jdbcClient.sql("create table actor(id int, name varchar(30))").update();
+    
+    String csv = """
+            id,name
+            1,Leonardo DiCaprio
+            2,Chase Infiniti
+            3,Benicio del Toro
+            """;
+    
+    CsvImport.into(dataSource).fromString(csv).table("actor").importData();
+    
+    ConsoleQuery.with(dataSource).table("actor").show();
+```
+
+or from a file:
+
+```java
+CsvImport.into(dataSource).from(new File("data.csv").table("actor").importData();
+```
+
 
 # DuckDB Support
 
