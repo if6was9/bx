@@ -110,8 +110,13 @@ The fillowing will export some data to a CSV:
 If the data is small and you want it in a String:
 
 ```java
- var output = CsvExport.from(dataSource())
-        .sql(c -> c.sql("select flight,ac_reg from adsb where flight=:flight").param("flight", "SWA3880")).exportToString();
+    String output =
+        CsvExport.from(dataSource())
+            .sql(
+                c ->
+                    c.sql("select flight,ac_reg from adsb where flight=:flight")
+                        .param("flight", "SWA3880"))
+            .exportToString();
 ```
 
 # DuckDB Support
