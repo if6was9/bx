@@ -229,4 +229,25 @@ public class DatesTest {
     Assertions.assertThat(Dates.asOffsetDateTime("2026-03-01T13:12:22-04:00").get())
         .isEqualTo(OffsetDateTime.of(2026, 3, 1, 13, 12, 22, 0, ZoneOffset.ofHours(-4)));
   }
+  
+  @Test
+  public void testDefaultDuckTimestampOutput() {
+    
+
+    Assertions.assertThat(Dates.asInstant("2009-01-10 14:30:18-08").get().toString()).isEqualTo("2009-01-10T22:30:18Z");
+    Assertions.assertThat(Dates.asInstant("2009-01-10 14:30:18-08").get().toString()).isEqualTo("2009-01-10T22:30:18Z");
+    Assertions.assertThat(Dates.asOffsetDateTime("2009-01-10 14:30:18-08").get().toString()).isEqualTo("2009-01-10T14:30:18-08:00");
+    Assertions.assertThat(Dates.asZonedDateTime("2009-01-10 14:30:18-08").get().toString()).isEqualTo("2009-01-10T14:30:18-08:00");
+    Assertions.assertThat(Dates.asInstant("2026-01-15 21:11:25.456419-08").get().toString()).isEqualTo("2026-01-16T05:11:25.456419Z");
+    Assertions.assertThat(Dates.asInstant("2026-01-15 21:11:25.456-08").get().toString()).isEqualTo("2026-01-16T05:11:25.456Z");
+    
+    
+    Assertions.assertThat(Dates.asInstant("2009-01-10T14:30:18-08").get().toString()).isEqualTo("2009-01-10T22:30:18Z");
+    Assertions.assertThat(Dates.asInstant("2009-01-10T14:30:18-08").get().toString()).isEqualTo("2009-01-10T22:30:18Z");
+    Assertions.assertThat(Dates.asOffsetDateTime("2009-01-10T14:30:18-08").get().toString()).isEqualTo("2009-01-10T14:30:18-08:00");
+    Assertions.assertThat(Dates.asZonedDateTime("2009-01-10T14:30:18-08").get().toString()).isEqualTo("2009-01-10T14:30:18-08:00");
+    Assertions.assertThat(Dates.asInstant("2026-01-15T21:11:25.456419-08").get().toString()).isEqualTo("2026-01-16T05:11:25.456419Z");
+    Assertions.assertThat(Dates.asInstant("2026-01-15T21:11:25.456-08").get().toString()).isEqualTo("2026-01-16T05:11:25.456Z");
+    
+  }
 }
