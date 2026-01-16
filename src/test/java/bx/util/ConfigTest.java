@@ -64,6 +64,7 @@ public class ConfigTest {
     System.out.println();
     System.setProperty("app.name", "foo");
 
+    cfg.reload();
     Assertions.assertThat(cfg.getAppName()).isEqualTo("foo");
 
     System.setProperty("app.name", "");
@@ -95,5 +96,8 @@ public class ConfigTest {
 
     cfg = Config.just(Map.of("APP_NAME", "foo"));
     Assertions.assertThat(cfg.getAppName()).isEqualTo("foo");
+    
+    cfg = Config.just(Map.of("app.name", "fizz"));
+    Assertions.assertThat(cfg.getAppName()).isEqualTo("fizz");
   }
 }

@@ -2,7 +2,12 @@ package bx.util;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.slf4j.Logger;
+
+import com.google.common.base.Preconditions;
+
 import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public abstract class Config {
@@ -10,13 +15,25 @@ public abstract class Config {
   static Logger logger = Slogger.forEnclosingClass();
   static YAMLMapper yamlMapper = new YAMLMapper();
 
+  AtomicReference<String> appName = new AtomicReference<String>();
+
   static ConfigImpl instance;
 
   static {
     instance = new ConfigImpl();
   }
 
-  public String getAppName() {
+  public synchronized String getAppName() {
+    if (appName.get() == null) {
+      String n = findAppName();
+      Preconditions.checkState(S.isNotBlank(n));
+      this.appName.set(n);
+    }
+
+    return appName.get();
+  }
+
+  final String findAppName() {
 
     String appName = null;
 
@@ -30,15 +47,17 @@ public abstract class Config {
       return appName;
     }
 
-    Map<String, String> props = instance.mergedRef.get();
-    if (props != null) {
-      appName = props.get("app.name");
-      if (S.isNotBlank(appName)) {
-        return appName;
-      }
-      appName = props.get("APP_NAME");
-      if (S.isNotBlank(appName)) {
-        return appName;
+    if (instance != null) {
+      Map<String, String> props = instance.mergedRef.get();
+      if (props != null) {
+        appName = props.get("app.name");
+        if (S.isNotBlank(appName)) {
+          return appName;
+        }
+        appName = props.get("APP_NAME");
+        if (S.isNotBlank(appName)) {
+          return appName;
+        }
       }
     }
     return S.notBlank(appName).orElse("bx");

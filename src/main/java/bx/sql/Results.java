@@ -169,7 +169,7 @@ public class Results {
     }
   }
 
-  public static Optional<LocalDate> toLocalDate(Object input, ZoneId zone) {
+  private static Optional<LocalDate> toLocalDate(Object input, ZoneId zone) {
     if (input == null) {
       return Optional.empty();
     }
@@ -208,7 +208,7 @@ public class Results {
     return toZonedDateTime(input, getSessionZone());
   }
 
-  public Optional<ZonedDateTime> toZonedDateTime(Object input, ZoneId zone) {
+  private Optional<ZonedDateTime> toZonedDateTime(Object input, ZoneId zone) {
     if (input == null) {
       return Optional.empty();
     }
@@ -247,7 +247,7 @@ public class Results {
     return toInstant(input, getSessionZone());
   }
 
-  public Optional<Instant> toInstant(Object input, ZoneId zone) {
+  private Optional<Instant> toInstant(Object input, ZoneId zone) {
     if (input == null) {
       return Optional.empty();
     }

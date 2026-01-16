@@ -159,6 +159,16 @@ class ConfigImpl extends Config {
   }
 
   public synchronized void reload() {
+    doReload(0);
+  }
+  private synchronized void doReload(int recursion) {
+    
+    String initialAppName=null;
+    if (recursion==0) {
+      this.appName.set(null);
+      initialAppName = findAppName();
+    }
+    
     this.mergedRef.set(null);
 
     suppliers.clear();
@@ -170,5 +180,17 @@ class ConfigImpl extends Config {
     suppliers.add(new CurrentDirSupplier());
     suppliers.add(new HomeDirSupplier());
     suppliers.add(new ClasspathConfigSupplier());
+    
+   
+    getProperties();  // force everything to get reloaded
+    
+   
+      String newAppName = findAppName();
+      if (recursion==0 && initialAppName!=null && (!initialAppName.equals(newAppName))) {
+        doReload(recursion++);
+      }
+     
+    
+      logger.atDebug().log("reload({}) initialAppName={} finalAppName={}",recursion,initialAppName,getAppName());
   }
 }
