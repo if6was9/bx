@@ -8,18 +8,20 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.CharSource;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.NamedCsvRecord;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSetMetaData;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -32,7 +34,8 @@ public class CsvImport {
   JdbcClient jdbc;
   String table;
 
-  CharSource charSource;
+  ByteSource byteSource;
+  boolean gzip = false;
 
   Map<String, Integer> columnTypeMap = Maps.newHashMap();
   Map<String, String> columnTypeNameMap = Maps.newHashMap();
@@ -52,16 +55,21 @@ public class CsvImport {
 
   public CsvImport from(File file) {
     Preconditions.checkNotNull(file);
-    return from(Files.asCharSource(file, StandardCharsets.UTF_8));
+    if (file.getName().endsWith(".gz")) {
+      gzip = true;
+    } else {
+      gzip = false;
+    }
+    return from(Files.asByteSource(file));
   }
 
-  public CsvImport from(CharSource source) {
-    this.charSource = source;
+  public CsvImport from(ByteSource source) {
+    this.byteSource = source;
     return this;
   }
 
   public CsvImport fromString(String data) {
-    this.charSource = CharSource.wrap(data);
+    this.byteSource = ByteSource.wrap(data.getBytes(StandardCharsets.UTF_8));
     return this;
   }
 
@@ -178,6 +186,19 @@ public class CsvImport {
             });
   }
 
+  private InputStream gunzip(InputStream in) throws IOException {
+    if (gzip) {
+      return new GZIPInputStream(in);
+    } else {
+      return in;
+    }
+  }
+
+  public CsvImport gunzip(boolean gz) {
+    this.gzip = gz;
+    return this;
+  }
+
   public int importData() {
 
     collectTableMetadata();
@@ -185,7 +206,8 @@ public class CsvImport {
     try (Defer defer = Defer.create()) {
       AtomicInteger count = new AtomicInteger();
 
-      CsvReader<NamedCsvRecord> r = CsvReader.builder().ofNamedCsvRecord(charSource.openStream());
+      CsvReader<NamedCsvRecord> r =
+          CsvReader.builder().ofNamedCsvRecord(gunzip(byteSource.openStream()));
       defer.register(r);
 
       String sql = null;

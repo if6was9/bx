@@ -6,15 +6,12 @@ import bx.util.S;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteSink;
-import com.google.common.io.CharSink;
 import de.siegmar.fastcsv.writer.CsvWriter;
 import de.siegmar.fastcsv.writer.CsvWriter.CsvWriterBuilder;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -22,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -29,10 +27,12 @@ import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public class CsvExport implements ResultSetExtractor<Integer> {
 
-  CharSink charSink;
+  ByteSink byteSink;
   List<Consumer<CsvWriterBuilder>> configList = Lists.newArrayList();
   JdbcClient client;
   Function<JdbcClient, StatementSpec> selectFunction;
+
+  boolean gzip = false;
 
   public static CsvExport from(DataSource ds) {
     Preconditions.checkNotNull(ds);
@@ -76,13 +76,13 @@ public class CsvExport implements ResultSetExtractor<Integer> {
   }
 
   public String exportToString() {
-    StringWriter sw = new StringWriter();
 
-    to(sw);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    to(baos);
 
     export();
 
-    return sw.toString();
+    return new String(baos.toByteArray());
   }
 
   CsvWriterBuilder applyConfig(CsvWriterBuilder b) {
@@ -96,15 +96,20 @@ public class CsvExport implements ResultSetExtractor<Integer> {
   }
 
   public CsvExport to(File output) {
-    return to(com.google.common.io.Files.asCharSink(output, StandardCharsets.UTF_8));
+    if (output.getName().endsWith(".gz")) {
+      this.gzip = true;
+    } else {
+      this.gzip = false;
+    }
+    return to(com.google.common.io.Files.asByteSink(output));
   }
 
-  public CsvExport to(Writer w) {
-    CharSink sink =
-        new CharSink() {
+  public CsvExport to(OutputStream w) {
+    ByteSink sink =
+        new ByteSink() {
 
           @Override
-          public Writer openStream() throws IOException {
+          public OutputStream openStream() throws IOException {
             return w;
           }
         };
@@ -112,8 +117,8 @@ public class CsvExport implements ResultSetExtractor<Integer> {
     return to(sink);
   }
 
-  public CsvExport to(CharSink sink) {
-    this.charSink = sink;
+  public CsvExport to(ByteSink sink) {
+    this.byteSink = sink;
     return this;
   }
 
@@ -168,9 +173,13 @@ public class CsvExport implements ResultSetExtractor<Integer> {
   @Override
   public Integer extractData(ResultSet rs) throws SQLException {
 
-    Preconditions.checkArgument(charSink != null, "destination must be set");
+    Preconditions.checkArgument(byteSink != null, "destination must be set");
     try (Defer defer = Defer.create()) {
-      Writer os = charSink.openStream();
+      OutputStream os = byteSink.openStream();
+
+      if (gzip) {
+        os = new GZIPOutputStream(os);
+      }
       defer.register(os);
       CsvWriter csvWriter = applyConfig(CsvWriter.builder()).build(os);
       defer.register(csvWriter);

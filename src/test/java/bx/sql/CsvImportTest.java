@@ -1,6 +1,8 @@
 package bx.sql;
 
 import bx.util.BxTest;
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
@@ -75,5 +77,18 @@ public class CsvImportTest extends BxTest {
     CsvImport.into(dataSource()).table("event").fromString(data).importData();
 
     ConsoleQuery.with(c).table("event").select();
+  }
+
+  @Test
+  public void testImportGzip() {
+    JdbcClient c = JdbcClient.create(dataSource());
+
+    c.sql("create table abc (a int, b int, c int)").update();
+
+    byte data[] =
+        BaseEncoding.base64()
+            .decode("H4sICMzXaWkAA3Rlc3QuY3N2AEvUSdJJ5jLUMdIx5jLRMdUx4zLXsdCx5OICAHjgCnYZAAAA");
+
+    CsvImport.into(dataSource()).table("abc").from(ByteSource.wrap(data)).gunzip(true).importData();
   }
 }

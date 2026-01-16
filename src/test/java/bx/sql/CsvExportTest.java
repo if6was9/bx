@@ -3,8 +3,10 @@ package bx.sql;
 import bx.sql.duckdb.DuckTable;
 import bx.util.BxTest;
 import de.siegmar.fastcsv.writer.QuoteStrategies;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.StringWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import org.junit.jupiter.api.Test;
 
 public class CsvExportTest extends BxTest {
@@ -13,12 +15,12 @@ public class CsvExportTest extends BxTest {
   public void testAsResultSetExtractor() {
     DuckTable t = loadAdsbTable("adsb");
 
-    StringWriter sw = new StringWriter();
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
     t.getJdbcClient()
         .sql("select flight,ac_reg as ac_reg from adsb limit 10")
-        .query(new CsvExport().withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS)).to(sw));
+        .query(new CsvExport().withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS)).to(baos));
 
-    System.out.println(sw.toString());
+    System.out.println(new String(baos.toByteArray()));
   }
 
   @Test
@@ -47,5 +49,17 @@ public class CsvExportTest extends BxTest {
                 c.sql("select flight,ac_reg from adsb where flight=:flight")
                     .param("flight", "SWA3880"))
         .export();
+  }
+
+  @Test
+  public void testGzip() throws IOException {
+    DuckTable t = loadAdsbTable("adsb");
+
+    File f = Files.createTempFile("temp", ".csv.gz").toFile();
+    t.getJdbcClient()
+        .sql("select flight,ac_reg as ac_reg from adsb limit 10")
+        .query(new CsvExport().withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS)).to(f));
+
+    System.out.println(f);
   }
 }

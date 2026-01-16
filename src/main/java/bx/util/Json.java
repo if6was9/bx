@@ -161,6 +161,7 @@ public class Json {
   public static Optional<ObjectNode> asObject(JsonNode input) {
     return asObjectNode(input);
   }
+
   public static Optional<ObjectNode> asObjectNode(JsonNode input) {
     if (input == null) {
       return Optional.empty();
@@ -174,6 +175,7 @@ public class Json {
   public static Optional<ArrayNode> asArray(JsonNode input) {
     return asArrayNode(input);
   }
+
   public static Optional<ArrayNode> asArrayNode(JsonNode input) {
     if (input == null) {
       return Optional.empty();

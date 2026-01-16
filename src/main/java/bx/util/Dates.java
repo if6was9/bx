@@ -17,24 +17,30 @@ import java.util.Optional;
 
 public class Dates {
 
-  private static final DateTimeFormatter DTS_PATTERN_0=DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX");
-  private static final DateTimeFormatter DTS_PATTERN_1=DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSX");
-  private static final DateTimeFormatter DTS_PATTERN_2=DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSX");
-  private static final DateTimeFormatter DTS_PATTERN_3=DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
-  private static final DateTimeFormatter DTS_PATTERN_4=DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX");
-  private static final DateTimeFormatter DTS_PATTERN_5=DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-  
-  private static final List<DateTimeFormatter> DTS_FORMATTERS=List.of(
-      DateTimeFormatter.ISO_DATE_TIME,
-      DateTimeFormatter.ISO_INSTANT,
-      DTS_PATTERN_0,
-      DTS_PATTERN_1,
-      DTS_PATTERN_2,
-      DTS_PATTERN_3,
-      DTS_PATTERN_4,
-      DTS_PATTERN_5
-      
-      );
+  private static final DateTimeFormatter DTS_PATTERN_0 =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX");
+  private static final DateTimeFormatter DTS_PATTERN_1 =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSX");
+  private static final DateTimeFormatter DTS_PATTERN_2 =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSX");
+  private static final DateTimeFormatter DTS_PATTERN_3 =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
+  private static final DateTimeFormatter DTS_PATTERN_4 =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX");
+  private static final DateTimeFormatter DTS_PATTERN_5 =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+
+  private static final List<DateTimeFormatter> DTS_FORMATTERS =
+      List.of(
+          DateTimeFormatter.ISO_DATE_TIME,
+          DateTimeFormatter.ISO_INSTANT,
+          DTS_PATTERN_0,
+          DTS_PATTERN_1,
+          DTS_PATTERN_2,
+          DTS_PATTERN_3,
+          DTS_PATTERN_4,
+          DTS_PATTERN_5);
+
   public static Optional<ZonedDateTime> asZonedDateTime(int year, int month, int day, ZoneId zone) {
     try {
       return Optional.of(ZonedDateTime.of(year, month, day, 0, 0, 0, 0, zone));
@@ -60,18 +66,17 @@ public class Dates {
     return Optional.of(x.get().toInstant());
   }
 
-  
   public static Optional<ZonedDateTime> asZonedDateTime(String s, List<DateTimeFormatter> list) {
-    if (list==null) {
+    if (list == null) {
       return Optional.empty();
     }
-    if (s==null) {
+    if (s == null) {
       return Optional.empty();
     }
 
-    for (DateTimeFormatter dtf: list) {
-      if (dtf!=null) {
-        Optional<TemporalAccessor> ta = parse(s,dtf);
+    for (DateTimeFormatter dtf : list) {
+      if (dtf != null) {
+        Optional<TemporalAccessor> ta = parse(s, dtf);
         if (!ta.isEmpty()) {
           return asZonedDateTime(ta.get());
         }
@@ -79,6 +84,7 @@ public class Dates {
     }
     return Optional.empty();
   }
+
   public static Optional<ZonedDateTime> asZonedDateTime(String s, DateTimeFormatter f) {
 
     Optional<TemporalAccessor> ta = parse(s, f);
@@ -203,12 +209,12 @@ public class Dates {
       return offset(dt.orElse(null), zone);
     }
 
-    dt = asZonedDateTime(s,DTS_FORMATTERS);
-  
+    dt = asZonedDateTime(s, DTS_FORMATTERS);
+
     if (dt.isPresent()) {
       return offset(dt.orElse(null), zone);
     }
-    
+
     dt = parseNumeric(s);
     if (dt.isPresent()) {
       return offset(dt.orElse(null), zone);
@@ -307,12 +313,11 @@ public class Dates {
 
   //// Everything after this point is NEW
 
-  
   public static Optional<TemporalAccessor> parse(String input, DateTimeFormatter... formatters) {
-    return parse(input,List.of(formatters));
+    return parse(input, List.of(formatters));
   }
+
   public static Optional<TemporalAccessor> parse(String input, List<DateTimeFormatter> formatters) {
-    
 
     if (formatters == null) {
       return Optional.empty();
