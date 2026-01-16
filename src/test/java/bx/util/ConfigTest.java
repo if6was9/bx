@@ -96,7 +96,7 @@ public class ConfigTest {
 
     cfg = Config.just(Map.of("APP_NAME", "foo"));
     Assertions.assertThat(cfg.getAppName()).isEqualTo("foo");
-    
+
     cfg = Config.just(Map.of("app.name", "fizz"));
     Assertions.assertThat(cfg.getAppName()).isEqualTo("fizz");
   }

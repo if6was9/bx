@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import tools.jackson.databind.JsonNode;
@@ -22,6 +25,8 @@ class ConfigImpl extends Config {
 
   List<Supplier<Map<String, String>>> suppliers = Lists.newArrayList();
 
+  ThreadLocal<AtomicInteger> recursiveThreadLocal = new ThreadLocal<AtomicInteger>();
+
   class CurrentDirSupplier implements Supplier<Map<String, String>> {
 
     @Override
@@ -29,11 +34,12 @@ class ConfigImpl extends Config {
 
       File f = new File(".", "config.yml");
       if (f.exists()) {
+        logFound(f.toURI().toString());
         JsonNode n = yamlMapper.readTree(f);
-        logger.atTrace().log("loading {}", f);
+
         return toMap(n);
       } else {
-        logger.atTrace().log("not found: {}", f);
+        logNotFound(f.toURI().toString());
       }
       return Map.of();
     }
@@ -46,6 +52,7 @@ class ConfigImpl extends Config {
 
       try {
         t = getClass().getClassLoader().getResources("config.yml").asIterator();
+        logLookingFor("classpath:/config.yml");
       } catch (IOException e) {
         throw new BxException(e);
       }
@@ -53,6 +60,8 @@ class ConfigImpl extends Config {
       Map<String, String> props = Maps.newHashMap();
       t.forEachRemaining(
           url -> {
+            logFound(Objects.toString(url));
+
             try (InputStream in = url.openStream()) {
 
               props.putAll(toMap(yamlMapper.readTree(in)));
@@ -94,11 +103,11 @@ class ConfigImpl extends Config {
       File dir = new File(System.getProperty("user.home"), String.format(".%s", app));
       File f = new File(dir, "config.yml");
       if (f.exists()) {
+        logFound(f.toURI().toString());
         JsonNode n = yamlMapper.readTree(f);
-        logger.atTrace().log("loading {}", f);
         return toMap(n);
       } else {
-        logger.atDebug().log("not found: {}", f);
+        logNotFound(f.toURI().toString());
       }
       return Map.of();
     }
@@ -113,6 +122,9 @@ class ConfigImpl extends Config {
   }
 
   private Map<String, String> merge() {
+
+    String appName = getAppName();
+    logger.atDebug().log("------------ start -----------");
     Map<String, String> merged = Maps.newHashMap();
     suppliers
         .reversed()
@@ -120,6 +132,7 @@ class ConfigImpl extends Config {
             m -> {
               merged.putAll(m.get());
             });
+    logger.atDebug().log("------------  end  -----------");
     return Map.copyOf(merged);
   }
 
@@ -159,38 +172,64 @@ class ConfigImpl extends Config {
   }
 
   public synchronized void reload() {
-    doReload(0);
-  }
-  private synchronized void doReload(int recursion) {
-    
-    String initialAppName=null;
-    if (recursion==0) {
-      this.appName.set(null);
-      initialAppName = findAppName();
+
+    AtomicInteger recursiveCount = recursiveThreadLocal.get();
+    if (recursiveCount == null) {
+      recursiveCount = new AtomicInteger(0);
+      recursiveThreadLocal.set(recursiveCount);
     }
-    
-    this.mergedRef.set(null);
-
-    suppliers.clear();
-
-    this.mergedRef.set(null);
-    suppliers = Lists.newArrayList();
-    suppliers.add(new EnvVarSupplier());
-    suppliers.add(new SysPropSupplier());
-    suppliers.add(new CurrentDirSupplier());
-    suppliers.add(new HomeDirSupplier());
-    suppliers.add(new ClasspathConfigSupplier());
-    
-   
-    getProperties();  // force everything to get reloaded
-    
-   
-      String newAppName = findAppName();
-      if (recursion==0 && initialAppName!=null && (!initialAppName.equals(newAppName))) {
-        doReload(recursion++);
+    try {
+      String initialAppName = null;
+      if (recursiveCount.get() == 0) {
+        this.appName.set(null);
+        Map<String, String> props = Maps.newHashMap();
+        System.getProperties()
+            .forEach(
+                (k, v) -> {
+                  props.put(Objects.toString(k), Objects.toString(v));
+                });
+        System.getenv()
+            .forEach(
+                (k, v) -> {
+                  props.put(Objects.toString(k), Objects.toString(v));
+                });
+        initialAppName = findAppName(props);
       }
-     
-    
-      logger.atDebug().log("reload({}) initialAppName={} finalAppName={}",recursion,initialAppName,getAppName());
+
+      this.mergedRef.set(null);
+
+      suppliers.clear();
+
+      this.mergedRef.set(null);
+      suppliers = Lists.newArrayList();
+      suppliers.add(new EnvVarSupplier());
+      suppliers.add(new SysPropSupplier());
+      suppliers.add(new CurrentDirSupplier());
+      suppliers.add(new HomeDirSupplier());
+      suppliers.add(new ClasspathConfigSupplier());
+
+      Map<String, String> props = getProperties(); // force everything to get reloaded
+
+      String newAppName = findAppName(props);
+
+      if (recursiveCount.get() == 0) {
+        if ((initialAppName == null || (!initialAppName.equals(newAppName)))) {
+
+          recursiveCount.incrementAndGet();
+          reload();
+        }
+      }
+
+    } finally {
+
+      int c = recursiveCount.decrementAndGet();
+      if (c <= 0) {
+        recursiveThreadLocal.set(null);
+      }
+    }
+  }
+
+  Optional<Map<String, String>> getPropertiesIfAvailable() {
+    return Optional.ofNullable(this.mergedRef.get());
   }
 }
