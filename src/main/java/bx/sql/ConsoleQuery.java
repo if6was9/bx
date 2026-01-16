@@ -34,6 +34,10 @@ public class ConsoleQuery {
     super();
   }
 
+  public static ConsoleQuery withDefaultDb() {
+    return with(Db.getInstance().getDataSource());
+  }
+
   public static ConsoleQuery with(DataSource ds) {
     return with(JdbcClient.create(ds));
   }
@@ -131,6 +135,19 @@ public class ConsoleQuery {
 
   public boolean isEnabled() {
     return (outputWriter != null || getLogger().isEnabledForLevel(getLevel()));
+  }
+
+  public void select(String sql, Function<StatementSpec, StatementSpec> statementSpecFunction) {
+
+    Function<StatementSpec, StatementSpec> fn;
+
+    if (statementSpecFunction == null) {
+      fn = (f) -> f;
+    } else {
+      fn = statementSpecFunction;
+    }
+
+    select(c -> fn.apply(c.sql(interpolateTableName(sql))));
   }
 
   public void select(String sql) {

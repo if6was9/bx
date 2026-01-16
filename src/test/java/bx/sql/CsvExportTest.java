@@ -3,6 +3,7 @@ package bx.sql;
 import bx.sql.duckdb.DuckTable;
 import bx.util.BxTest;
 import de.siegmar.fastcsv.writer.QuoteStrategies;
+import java.io.File;
 import java.io.StringWriter;
 import org.junit.jupiter.api.Test;
 
@@ -24,12 +25,27 @@ public class CsvExportTest extends BxTest {
   public void testFluent() {
     loadAdsbTable("adsb");
 
-    StringWriter sw = new StringWriter();
+    String output =
+        CsvExport.from(dataSource())
+            .sql(
+                c ->
+                    c.sql("select flight,ac_reg from adsb where flight=:flight")
+                        .param("flight", "SWA3880"))
+            .exportToString();
+
+    System.out.println(output);
+  }
+
+  @Test
+  public void testExportToFile() {
+    loadAdsbTable("adsb");
 
     CsvExport.from(dataSource())
-        .to(sw)
-        .sql(c -> c.sql("select * as xx from adsb limit :limit").param("limit", 10));
-
-    System.out.println(sw.toString());
+        .to(new File("./target/test.csv"))
+        .sql(
+            c ->
+                c.sql("select flight,ac_reg from adsb where flight=:flight")
+                    .param("flight", "SWA3880"))
+        .export();
   }
 }

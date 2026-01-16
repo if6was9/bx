@@ -2,14 +2,19 @@ package bx.sql;
 
 import bx.util.BxException;
 import bx.util.Defer;
+import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
+import com.google.common.io.Files;
 import de.siegmar.fastcsv.reader.CsvReader;
 import de.siegmar.fastcsv.reader.NamedCsvRecord;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSetMetaData;
 import java.util.Iterator;
 import java.util.List;
@@ -45,9 +50,23 @@ public class CsvImport {
     return imp;
   }
 
+  public CsvImport from(File file) {
+    Preconditions.checkNotNull(file);
+    return from(Files.asCharSource(file, StandardCharsets.UTF_8));
+  }
+
+  public CsvImport from(CharSource source) {
+    this.charSource = source;
+    return this;
+  }
+
   public CsvImport fromString(String data) {
     this.charSource = CharSource.wrap(data);
     return this;
+  }
+
+  public CsvImport into(String table) {
+    return table(table);
   }
 
   public CsvImport table(String table) {
@@ -60,8 +79,12 @@ public class CsvImport {
     columnTypeMap = Maps.newHashMap();
     columnTypeNameMap = Maps.newHashMap();
 
+    Preconditions.checkArgument(S.isNotBlank(table), "table name must be set");
     String sql = "select * from {{table}} limit 1";
-    sql = sql.replace("{{table}}", table);
+    if (table != null) {
+      sql = sql.replace("{{table}}", table);
+    }
+
     this.jdbc
         .sql(sql)
         .query(

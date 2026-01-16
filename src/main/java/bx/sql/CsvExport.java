@@ -12,6 +12,7 @@ import de.siegmar.fastcsv.writer.CsvWriter.CsvWriterBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
@@ -31,6 +32,7 @@ public class CsvExport implements ResultSetExtractor<Integer> {
   CharSink charSink;
   List<Consumer<CsvWriterBuilder>> configList = Lists.newArrayList();
   JdbcClient client;
+  Function<JdbcClient, StatementSpec> selectFunction;
 
   public static CsvExport from(DataSource ds) {
     Preconditions.checkNotNull(ds);
@@ -46,22 +48,41 @@ public class CsvExport implements ResultSetExtractor<Integer> {
 
   public CsvExport() {}
 
-  public int select(String sql) {
-    return select(sql, null);
+  public CsvExport sql(String sql, Function<StatementSpec, StatementSpec> statement) {
+
+    return sql(
+        jdbc -> {
+          StatementSpec spec = jdbc.sql(sql);
+
+          if (statement != null) {
+            return statement.apply(spec);
+          }
+          return spec;
+        });
   }
 
-  public int sql(Function<JdbcClient, StatementSpec> f) {
-    return f.apply(client).query(this);
+  public CsvExport sql(String sql) {
+
+    return sql(jdbc -> jdbc.sql(sql));
   }
 
-  public int select(String sql, Consumer<StatementSpec> specConsumer) {
+  public CsvExport sql(Function<JdbcClient, StatementSpec> f) {
+    this.selectFunction = f;
+    return this;
+  }
 
-    StatementSpec spec = client.sql(sql);
+  public int export() {
+    return selectFunction.apply(this.client).query(this);
+  }
 
-    if (specConsumer != null) {
-      specConsumer.accept(spec);
-    }
-    return spec.query(this);
+  public String exportToString() {
+    StringWriter sw = new StringWriter();
+
+    to(sw);
+
+    export();
+
+    return sw.toString();
   }
 
   CsvWriterBuilder applyConfig(CsvWriterBuilder b) {
