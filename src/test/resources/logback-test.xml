@@ -11,6 +11,8 @@
     </encoder>
   </appender>
 
+    <appender name="TEST" class="bx.util.LogAppenderTest"> </appender>
+
 
     <logger name="ROOT" level="INFO" />
    <logger name="com.zaxxer" level="INFO" />
@@ -20,5 +22,6 @@
 
   <root level="DEBUG">
     <appender-ref ref="STDOUT"/>
+    <appender-ref ref="TEST" />
   </root>
 </configuration>
