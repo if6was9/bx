@@ -16,20 +16,20 @@ public class ConsoleQueryTest extends BxTest {
   public void test() {
     loadAdsbTable("adsb");
 
-    ConsoleQuery.with(dataSource()).table("adsb").show();
-    ConsoleQuery.with(dataSource())
+    ConsoleQuery.with(getDataSource()).table("adsb").show();
+    ConsoleQuery.with(getDataSource())
         .select(c -> c.sql("select * from adsb limit :limit").param("limit", 5));
   }
 
   @Test
   public void testLoggingShouldNotThrowExceptions() {
 
-    ConsoleQuery.with(dataSource()).stdout().select(c -> c.sql("select * from does_not_exist"));
+    ConsoleQuery.with(getDataSource()).stdout().select(c -> c.sql("select * from does_not_exist"));
   }
 
   @Test
   public void testIt() {
-    var client = getH2Db().getInstance().getJdbcClient();
+    var client = getH2Db().getJdbcClient();
 
     client.sql("create table test (name char(20), age int)").update();
     client.sql("insert into test (name, age) values ('homer',8)").update();
@@ -40,7 +40,7 @@ public class ConsoleQueryTest extends BxTest {
   @Test
   public void testDoc() {
 
-    var dataSource = dataSource();
+    var dataSource = getDataSource();
 
     JdbcClient.create(dataSource).sql("create table actor(id int, name varchar(30))").update();
     JdbcClient.create(dataSource)
@@ -61,16 +61,16 @@ public class ConsoleQueryTest extends BxTest {
         .param("name", "Benicio del Toro")
         .update();
 
-    ConsoleQuery.withDefaultDb()
+    ConsoleQuery.withPrimaryDb()
         .select(c -> c.sql("Select * from actor where id=:id").param("id", 1));
 
-    ConsoleQuery.withDefaultDb().select("Select * from actor where id=:id", c -> c.param("id", 1));
+    ConsoleQuery.withPrimaryDb().select("Select * from actor where id=:id", c -> c.param("id", 1));
   }
 
   @Test
   public void testCsvImport() {
 
-    var dataSource = dataSource();
+    var dataSource = getDataSource();
     var jdbcClient = JdbcClient.create(dataSource);
 
     jdbcClient.sql("create table actor(id int, name varchar(30))").update();

@@ -23,7 +23,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsvImport.using(dataSource()).fromString(csv).load();
+    DuckTable t = DuckCsvImport.using(getDataSource()).fromString(csv).load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -43,7 +43,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsvImport.using(dataSource()).fromString(csv).load();
+    DuckTable t = DuckCsvImport.using(getDataSource()).fromString(csv).load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -64,7 +64,7 @@ public class DuckCsvTest extends BxTest {
         7,8,9
         """;
 
-    DuckTable t = DuckCsvImport.using(dataSource()).fromString(csv).table("foo").load();
+    DuckTable t = DuckCsvImport.using(getDataSource()).fromString(csv).table("foo").load();
 
     t.show();
     Assertions.assertThat(t.rowCount()).isEqualTo(3);
@@ -77,12 +77,12 @@ public class DuckCsvTest extends BxTest {
   @Test
   public void test() throws IOException {
 
-    var jdbc = JdbcClient.create(dataSource());
+    var jdbc = JdbcClient.create(getDataSource());
     jdbc.sql("create table test (name varchar(10),age int)").update();
     jdbc.sql("insert into test (name,age) values ('Homer',8)").update();
     jdbc.sql("insert into test (name,age) values ('Rosie',3)").update();
 
-    String out = DuckCsvExport.using(dataSource()).table("test").exportAsString();
+    String out = DuckCsvExport.using(getDataSource()).table("test").exportAsString();
 
     var lines = CharSource.wrap(out).readLines();
 
@@ -91,7 +91,7 @@ public class DuckCsvTest extends BxTest {
     Assertions.assertThat(lines.get(2)).isEqualTo("Rosie,3");
 
     out =
-        DuckCsvExport.using(dataSource())
+        DuckCsvExport.using(getDataSource())
             .select("select * from test where age<:age", st -> st.param("age", 5))
             .exportAsString();
 
@@ -144,19 +144,19 @@ public class DuckCsvTest extends BxTest {
     expect(
         IllegalArgumentException.class,
         () -> {
-          DuckCsvExport.using(dataSource()).export();
+          DuckCsvExport.using(getDataSource()).export();
         });
 
     expect(
         IllegalArgumentException.class,
         () -> {
           File f = Files.createTempFile("temp", ".csv").toFile();
-          DuckCsvExport.using(dataSource()).to(f).export();
+          DuckCsvExport.using(getDataSource()).to(f).export();
         });
     expect(
         IllegalArgumentException.class,
         () -> {
-          DuckCsvExport.using(dataSource()).export();
+          DuckCsvExport.using(getDataSource()).export();
         });
   }
 }

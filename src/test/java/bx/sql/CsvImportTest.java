@@ -11,7 +11,7 @@ public class CsvImportTest extends BxTest {
   @Test
   public void testIt() {
 
-    JdbcClient c = JdbcClient.create(dataSource());
+    JdbcClient c = JdbcClient.create(getDataSource());
 
     c.sql("create table dog (name varchar(20) ,BREED varchar(20), age int, extra_column int)")
         .update();
@@ -22,7 +22,7 @@ public class CsvImportTest extends BxTest {
         Homer,Schnoodle,8,
         Rosie,Golden Schnoodle,3,
         """;
-    CsvImport.into(dataSource()).table("dog").fromString(data).importData();
+    CsvImport.into(getDataSource()).table("dog").fromString(data).importData();
 
     ConsoleQuery.with(c).table("dog").select();
   }
@@ -30,7 +30,7 @@ public class CsvImportTest extends BxTest {
   @Test
   public void testDate() {
 
-    JdbcClient c = JdbcClient.create(dataSource());
+    JdbcClient c = JdbcClient.create(getDataSource());
 
     c.sql("create table dog (name varchar(20) , birthdate date)").update();
 
@@ -39,7 +39,7 @@ public class CsvImportTest extends BxTest {
         name,birthdate
         Homer,2016-07-18
         """;
-    CsvImport.into(dataSource()).table("dog").fromString(data).importData();
+    CsvImport.into(getDataSource()).table("dog").fromString(data).importData();
 
     ConsoleQuery.with(c).table("dog").select();
   }
@@ -47,7 +47,7 @@ public class CsvImportTest extends BxTest {
   @Test
   public void testTimestamp() {
 
-    JdbcClient c = JdbcClient.create(dataSource());
+    JdbcClient c = JdbcClient.create(getDataSource());
 
     c.sql("create table event (event varchar(20) , ts timestamp)").update();
 
@@ -56,7 +56,7 @@ public class CsvImportTest extends BxTest {
         event,ts
         a,2016-07-18T12:13:14
         """;
-    CsvImport.into(dataSource()).table("event").fromString(data).importData();
+    CsvImport.into(getDataSource()).table("event").fromString(data).importData();
 
     ConsoleQuery.with(c).table("event").select();
   }
@@ -64,7 +64,7 @@ public class CsvImportTest extends BxTest {
   @Test
   public void testTimestampWithZone() {
 
-    JdbcClient c = JdbcClient.create(dataSource());
+    JdbcClient c = JdbcClient.create(getDataSource());
 
     c.sql("create table event (event varchar(20) , ts timestamptz)").update();
 
@@ -74,14 +74,14 @@ public class CsvImportTest extends BxTest {
         a,2016-07-18T12:13:14Z
         b,2016-07-18T12:13:14-07:00
         """;
-    CsvImport.into(dataSource()).table("event").fromString(data).importData();
+    CsvImport.into(getDataSource()).table("event").fromString(data).importData();
 
     ConsoleQuery.with(c).table("event").select();
   }
 
   @Test
   public void testImportGzip() {
-    JdbcClient c = JdbcClient.create(dataSource());
+    JdbcClient c = JdbcClient.create(getDataSource());
 
     c.sql("create table abc (a int, b int, c int)").update();
 
@@ -89,6 +89,10 @@ public class CsvImportTest extends BxTest {
         BaseEncoding.base64()
             .decode("H4sICMzXaWkAA3Rlc3QuY3N2AEvUSdJJ5jLUMdIx5jLRMdUx4zLXsdCx5OICAHjgCnYZAAAA");
 
-    CsvImport.into(dataSource()).table("abc").from(ByteSource.wrap(data)).gunzip(true).importData();
+    CsvImport.into(getDataSource())
+        .table("abc")
+        .from(ByteSource.wrap(data))
+        .gunzip(true)
+        .importData();
   }
 }

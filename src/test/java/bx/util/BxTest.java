@@ -43,7 +43,7 @@ public abstract class BxTest {
 
     Stopwatch sw = Stopwatch.createStarted();
     try {
-      return DuckCsvImport.using(dataSource())
+      return DuckCsvImport.using(getDataSource())
           .table(name)
           .from(new File("./src/test/resources/adsb.csv"))
           .load();
@@ -52,7 +52,7 @@ public abstract class BxTest {
     }
   }
 
-  public DataSource dataSource() {
+  public DataSource getDataSource() {
     return db().getDataSource();
   }
 
@@ -82,7 +82,7 @@ public abstract class BxTest {
   }
 
   ConsoleQuery consoleQuery() {
-    return ConsoleQuery.with(dataSource()).out(LoggerFactory.getLogger(getClass()));
+    return ConsoleQuery.with(getDataSource()).out(LoggerFactory.getLogger(getClass()));
   }
 
   @AfterEach

@@ -12,7 +12,7 @@ public class DuckCsvImportTest extends BxTest {
   public void testIt() {
 
     DuckTable t =
-        new DuckCsvImport(dataSource())
+        new DuckCsvImport(getDataSource())
             .from(new File("./src/test/resources/adsb.csv"))
             .importData();
 
@@ -23,7 +23,7 @@ public class DuckCsvImportTest extends BxTest {
   public void testOrderByWithoutOrderBy() {
 
     DuckTable t =
-        new DuckCsvImport(dataSource())
+        new DuckCsvImport(getDataSource())
             .from(new File("./src/test/resources/adsb.csv"))
             .columns(List.of("flight", "id"))
             .orderBy("ac_type")
@@ -37,7 +37,7 @@ public class DuckCsvImportTest extends BxTest {
   public void testOrderByWithOrderBy() {
 
     var t =
-        new DuckCsvImport(dataSource())
+        new DuckCsvImport(getDataSource())
             .from(new File("./src/test/resources/adsb.csv"))
             .columns(List.of("flight", "id"))
             .orderBy("ORDER BY ac_type")

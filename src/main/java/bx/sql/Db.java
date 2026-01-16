@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.function.Supplier;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public class Db implements AutoCloseable {
 
@@ -32,13 +33,30 @@ public class Db implements AutoCloseable {
 
   private String urlForToString;
 
-  public static Db get() {
+  /**
+   * Gets the primary Db instance.  Shorthand for getPrimaryDb().
+   * @return
+   */
+  public static Db db() {
+    return getPrimaryDb();
+  }
+
+  /**
+   *  Gets the primary Db instance.
+   * @return
+   */
+  public static Db getPrimaryDb() {
+
     return supplier.get();
   }
 
-  public static Db getInstance() {
-
-    return get();
+  /**
+   * Shorthand for starting a JdbcClient SQL operation
+   * @param sql
+   * @return
+   */
+  public StatementSpec sql(String sql) {
+    return getJdbcClient().sql(sql);
   }
 
   static Db createStandard() {

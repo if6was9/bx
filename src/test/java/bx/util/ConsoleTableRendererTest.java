@@ -57,7 +57,7 @@ public class ConsoleTableRendererTest extends BxTest {
             .map(m -> (String) m.get("id"))
             .toList();
 
-    JdbcClient jdbc = JdbcClient.create(dataSource());
+    JdbcClient jdbc = JdbcClient.create(getDataSource());
 
     ConsoleTableRenderer ct = new ConsoleTableRenderer();
     ct.maxRows(40);
@@ -86,7 +86,7 @@ public class ConsoleTableRendererTest extends BxTest {
 
   @Test
   public void testSmallTable() {
-    JdbcClient jdbc = JdbcClient.create(dataSource());
+    JdbcClient jdbc = JdbcClient.create(getDataSource());
     String s = jdbc.sql("Select null as a, 2 as b").query(new ConsoleTableRenderer());
     System.out.println(s);
 
@@ -212,7 +212,7 @@ public class ConsoleTableRendererTest extends BxTest {
   public void testRender() {
 
     String s =
-        JdbcClient.create(dataSource())
+        JdbcClient.create(getDataSource())
             .sql("select 123.456E-7 as foo")
             .query(new ConsoleTableRenderer());
     System.out.println(s);
@@ -220,13 +220,13 @@ public class ConsoleTableRendererTest extends BxTest {
     String val = Hashing.sha256().hashBytes(new byte[0]).toString();
 
     s =
-        JdbcClient.create(dataSource())
+        JdbcClient.create(getDataSource())
             .sql("select '" + val + "' as foo")
             .query(new ConsoleTableRenderer());
     Assertions.assertThat(s).contains("b855  ");
 
     s =
-        JdbcClient.create(dataSource())
+        JdbcClient.create(getDataSource())
             .sql("select '" + (val + "XXX") + "' as foo")
             .query(new ConsoleTableRenderer());
     Assertions.assertThat(s).contains("b855...  ");

@@ -207,7 +207,7 @@ public class DuckTableTest extends BxTest {
 
     var c = RateCounter.create();
     for (int i = 0; i < 10000; i++) {
-      JdbcClient.create(dataSource());
+      JdbcClient.create(getDataSource());
       c.increment();
     }
     c.log();
@@ -264,7 +264,7 @@ public class DuckTableTest extends BxTest {
         0140441182,Thus Spoke Zarathustra,Friedrich Nietzsche
         """;
 
-    var t = DuckTable.of(dataSource(), "book").csvImport().fromString(csv).table("book").load();
+    var t = DuckTable.of(getDataSource(), "book").csvImport().fromString(csv).table("book").load();
 
     Assertions.assertThat(t.getName()).isEqualTo("book");
     t.show();

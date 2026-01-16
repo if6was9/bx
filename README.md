@@ -27,13 +27,13 @@ export DB_PASSWORD=mypassword
 
 The database is then accessible 
 ```java
-var db = Db.getInstance();
+var db = Db.db(); // access a global Db instance
 var dataSource = db.getDataSource();
 ```
 
 ## Console Query
 
- ConsoleQuery.withDefaultDb().select("select * from actor");
+ ConsoleQuery.withPrimaryDb().select("select * from actor");
 
  ```
 ┌───────────┬─────────────────────┐
@@ -49,7 +49,7 @@ var dataSource = db.getDataSource();
 Console query has fluent integration with Spring JDBC.  For instance:
 
 ```java
-    ConsoleQuery.withDefaultDb()
+    ConsoleQuery.withPrimaryDb()
         .select(c -> c.sql("Select * from actor where id=:id").param("id", 1));
 ```
 will generate:
@@ -65,7 +65,7 @@ will generate:
 This is equivalent if you find it cleaner:
 
 ```java
-    ConsoleQuery.withDefaultDb()
+    ConsoleQuery.withPrimaryDb()
     .select("Select * from actor where id=:id",c->c.param("id", 1));
 ```
 ## CSV Import
@@ -98,7 +98,7 @@ CsvImport.into(dataSource).from(new File("data.csv").table("actor").importData()
 The fillowing will export some data to a CSV:
 
 ```java
-    CsvExport.from(dataSource())
+    CsvExport.from(dataSource)
         .to(new File("./output.csv"))
         .sql(
             c ->
@@ -111,7 +111,7 @@ If the data is small and you want it in a String:
 
 ```java
     String output =
-        CsvExport.from(dataSource())
+        CsvExport.from(dataSource)
             .sql(
                 c ->
                     c.sql("select flight,ac_reg from adsb where flight=:flight")

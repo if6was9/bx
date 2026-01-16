@@ -19,10 +19,10 @@ public class ArrayNodeRowMapperTest extends BxTest {
         2,Rosie,2023-02-28,""
         """;
 
-    var table = DuckCsvImport.using(dataSource()).fromString(csv).load();
+    var table = DuckCsvImport.using(getDataSource()).fromString(csv).load();
 
     var list =
-        JdbcClient.create(dataSource())
+        JdbcClient.create(getDataSource())
             .sql("select * from " + table.getName())
             .query(Mappers.jsonArrayMapper())
             .list();

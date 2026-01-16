@@ -28,7 +28,7 @@ public class CsvExportTest extends BxTest {
     loadAdsbTable("adsb");
 
     String output =
-        CsvExport.from(dataSource())
+        CsvExport.from(getDataSource())
             .sql(
                 c ->
                     c.sql("select flight,ac_reg from adsb where flight=:flight")
@@ -42,7 +42,7 @@ public class CsvExportTest extends BxTest {
   public void testExportToFile() {
     loadAdsbTable("adsb");
 
-    CsvExport.from(dataSource())
+    CsvExport.from(getDataSource())
         .to(new File("./target/test.csv"))
         .sql(
             c ->

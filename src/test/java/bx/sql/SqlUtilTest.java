@@ -8,13 +8,6 @@ import org.junit.jupiter.api.Test;
 public class SqlUtilTest extends BxTest {
 
   @Test
-  public void testIt() {
-    System.out.println(dataSource());
-
-    System.out.println(db());
-  }
-
-  @Test
   public void testFindEnclosingClass() {
 
     Assertions.assertThat(Classes.findEnclosingClassName().orElse(""))

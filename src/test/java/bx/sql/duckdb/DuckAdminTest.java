@@ -11,17 +11,17 @@ public class DuckAdminTest extends BxTest {
 
     loadAdsbTable("adsb");
 
-    DuckAdmin.of(dataSource()).showSettings();
+    DuckAdmin.of(getDataSource()).showSettings();
   }
 
   @Test
   public void testGetSettings() {
-    System.out.println(DuckAdmin.of(dataSource()).getSetting("TimeZone").get());
+    System.out.println(DuckAdmin.of(getDataSource()).getSetting("TimeZone").get());
   }
 
   @Test
   public void testModifySetting() {
-    DuckAdmin admin = DuckAdmin.of(dataSource());
+    DuckAdmin admin = DuckAdmin.of(getDataSource());
     admin.modifySetting("threads", "8");
     Assertions.assertThat(admin.getSetting("threads").get()).isEqualTo("8");
     admin.modifySetting("threads", 12);
@@ -30,7 +30,7 @@ public class DuckAdminTest extends BxTest {
 
   @Test
   public void testCheckpoint() {
-    DuckAdmin admin = DuckAdmin.of(dataSource());
+    DuckAdmin admin = DuckAdmin.of(getDataSource());
     admin.checkpoint();
   }
 }

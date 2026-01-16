@@ -60,7 +60,7 @@ public class DuckCsvExportTest extends BxTest {
 
     File outputFile = new File(createTempDir(), "out.csv");
 
-    new DuckCsvExport(dataSource())
+    new DuckCsvExport(getDataSource())
         .select("select * from adsb where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
         .to(outputFile)
         .export();
@@ -78,9 +78,9 @@ public class DuckCsvExportTest extends BxTest {
 
     String bucket = "test.bitquant.cloud";
 
-    DuckS3Extension.load(dataSource()).useCredentialChain();
+    DuckS3Extension.load(getDataSource()).useCredentialChain();
 
-    new DuckCsvExport(dataSource())
+    new DuckCsvExport(getDataSource())
         .select("select * from adsb where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
         .toS3(bucket, "temp/out.csv")
         .export();

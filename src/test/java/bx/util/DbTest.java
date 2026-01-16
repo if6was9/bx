@@ -19,16 +19,15 @@ public class DbTest extends BxTest {
   public void testSame1() {
 
     Assertions.assertThat(db()).isSameAs(db());
-    Assertions.assertThat(Db.getInstance()).isSameAs(db());
+    Assertions.assertThat(Db.getPrimaryDb()).isSameAs(db());
     Assertions.assertThat(db().getDataSource()).isSameAs(db().getDataSource());
     dbList.add(db());
   }
 
   @Test
   public void testSame2() {
-
     Assertions.assertThat(db()).isSameAs(db());
-    Assertions.assertThat(Db.getInstance()).isSameAs(db());
+    Assertions.assertThat(Db.getPrimaryDb()).isSameAs(db());
     Assertions.assertThat(db().getDataSource()).isSameAs(db().getDataSource());
     dbList.add(db());
   }
@@ -39,7 +38,7 @@ public class DbTest extends BxTest {
     Db db = db();
 
     Assertions.assertThat(db()).isSameAs(db);
-    Assertions.assertThat(Db.getInstance()).isSameAs(db);
+    Assertions.assertThat(Db.getPrimaryDb()).isSameAs(db);
 
     Assertions.assertThat(db.getDataSource()).isSameAs(db().getDataSource());
   }
@@ -50,7 +49,7 @@ public class DbTest extends BxTest {
     Db db = db();
 
     Assertions.assertThat(db()).isSameAs(db);
-    Assertions.assertThat(Db.getInstance()).isSameAs(db);
+    Assertions.assertThat(Db.getPrimaryDb()).isSameAs(db);
 
     Assertions.assertThat(db.getDataSource()).isSameAs(db().getDataSource());
   }
@@ -134,6 +133,12 @@ public class DbTest extends BxTest {
     } catch (SQLException expected) {
       // Ok
     }
+  }
+
+  @Test
+  public void testShortForm() {
+
+    Assertions.assertThat(db().getDataSource()).isSameAs(getDataSource());
   }
 
   @Test

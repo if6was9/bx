@@ -34,16 +34,22 @@ public class ConsoleQuery {
     super();
   }
 
-  public static ConsoleQuery withDefaultDb() {
-    return with(Db.getInstance().getDataSource());
+  public static ConsoleQuery withPrimaryDb() {
+    return with(Db.getPrimaryDb());
+  }
+
+  public static ConsoleQuery with(Db db) {
+    Preconditions.checkNotNull(db, "db cannot be null");
+    return with(db.getDataSource());
   }
 
   public static ConsoleQuery with(DataSource ds) {
+    Preconditions.checkNotNull(ds);
     return with(JdbcClient.create(ds));
   }
 
   public static ConsoleQuery with(JdbcClient c) {
-
+    Preconditions.checkNotNull(c);
     var q = new ConsoleQuery();
     q.jdbc = c;
 
