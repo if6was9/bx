@@ -62,6 +62,12 @@ will generate:
 └───────────┴─────────────────────┘
 ```
 
+This is equivalent if you find it cleaner:
+
+```java
+    ConsoleQuery.withDefaultDb()
+    .select("Select * from actor where id=:id",c->c.param("id", 1));
+```
 
 # DuckDB Support
 
