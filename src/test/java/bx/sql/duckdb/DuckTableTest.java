@@ -11,6 +11,7 @@ import org.duckdb.DuckDBAppender;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 public class DuckTableTest extends BxTest {
@@ -268,5 +269,30 @@ public class DuckTableTest extends BxTest {
 
     Assertions.assertThat(t.getName()).isEqualTo("book");
     t.show();
+  }
+  
+  
+  @Test
+  public void testToString() {
+    DuckTable test = DuckTable.of(db().getDataSource(), "test");
+    
+    logger.atInfo().log("table: {}",test);
+  }
+  @Test
+  public void testAddPrimaryKey() {
+    db().sql("create table test(id int, name varchar)").update();
+    
+    DuckTable test = DuckTable.of(db().getDataSource(), "test");
+    
+
+    expect(IllegalArgumentException.class, ()->{
+      test.addPrimaryKey();
+    });
+    
+   test.addPrimaryKey("id");
+   
+   expect(DataAccessException.class, ()->{
+     test.addPrimaryKey("id");
+   });
   }
 }

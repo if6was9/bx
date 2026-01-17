@@ -102,22 +102,7 @@ public class DuckCsvTest extends BxTest {
     Assertions.assertThat(lines.get(1)).isEqualTo("Rosie,3");
   }
 
-  public static void expect(Class<? extends Throwable> clazz, CheckBlock r) {
-    try {
-      r.run();
-      Assertions.failBecauseExceptionWasNotThrown(clazz);
-    } catch (Throwable t) {
 
-      Assertions.assertThat(clazz.isAssignableFrom(t.getClass()))
-          .withFailMessage("expected %s but got %s -- %s", clazz, t.getClass(), t.toString())
-          .isTrue();
-    }
-  }
-
-  static interface CheckBlock {
-
-    void run() throws Exception;
-  }
 
   @Test
   public void testInvalidUsage() {

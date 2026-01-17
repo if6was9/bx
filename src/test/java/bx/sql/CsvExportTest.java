@@ -7,6 +7,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class CsvExportTest extends BxTest {
@@ -61,5 +63,21 @@ public class CsvExportTest extends BxTest {
         .query(new CsvExport().withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS)).to(f));
 
     System.out.println(f);
+  }
+  
+  @Test
+  public void testVariants() throws IOException {
+    DuckTable t = loadAdsbTable("adsb");
+    
+    String csv1 = CsvExport.from(t.getDataSource()).sql("select flight,ac_reg from adsb order by flight limit 5").exportToString();
+    String csv2 = CsvExport.from(t.getDataSource()).sql(c->c.sql("select flight,ac_reg from adsb order by flight limit 5")).exportToString();
+    String csv3 = CsvExport.from(t.getDataSource()).sql("select flight,ac_reg from adsb order by flight limit 5",null).exportToString();
+    String csv4 = CsvExport.from(t.getDataSource()).sql("select flight,ac_reg from adsb order by flight limit :limit",c->c.param("limit",5)).exportToString();
+    String csv5 = CsvExport.from(t.getDataSource()).sql(c->c.sql("select flight,ac_reg from adsb order by flight limit :limit").param("limit",5)).exportToString();
+    
+    Assertions.assertThat(csv1).isEqualTo(csv2);
+    Assertions.assertThat(csv1).isEqualTo(csv3);
+    Assertions.assertThat(csv1).isEqualTo(csv4);
+    Assertions.assertThat(csv1).isEqualTo(csv5);
   }
 }

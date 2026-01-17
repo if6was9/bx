@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
@@ -97,6 +99,22 @@ public abstract class BxTest {
     if (h2Db != null) {
 
       h2Db.getJdbcClient().sql("DROP ALL OBJECTS").update();
+    }
+  }
+
+  @FunctionalInterface
+  public static interface CodeBlock {
+  
+    public void run() throws Exception;
+  }
+  
+  public void expect(Class<? extends Throwable> type,CodeBlock block ) {
+    try {
+      block.run();
+      Assertions.failBecauseExceptionWasNotThrown(type);
+    }
+    catch (Exception e) {
+      Assertions.assertThat(e).isInstanceOf(type);
     }
   }
 }

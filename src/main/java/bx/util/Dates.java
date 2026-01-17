@@ -41,22 +41,8 @@ public class Dates {
           DTS_PATTERN_4,
           DTS_PATTERN_5);
 
-  public static Optional<ZonedDateTime> asZonedDateTime(int year, int month, int day, ZoneId zone) {
-    try {
-      return Optional.of(ZonedDateTime.of(year, month, day, 0, 0, 0, 0, zone));
-    } catch (Exception e) {
-      return Optional.empty();
-    }
-  }
 
-  public static Optional<Instant> asInstant(String s, ZoneId zone) {
-    Preconditions.checkNotNull(zone, "zone must be set");
-    Optional<ZonedDateTime> x = asZonedDateTime(s, zone);
-    if (x.isEmpty()) {
-      return Optional.empty();
-    }
-    return Optional.of(x.get().toInstant());
-  }
+
 
   public static Optional<Instant> asInstant(String s) {
     Optional<ZonedDateTime> x = asZonedDateTime(s);
@@ -184,73 +170,37 @@ public class Dates {
     return Optional.empty();
   }
 
-  private static Optional<ZonedDateTime> offset(ZonedDateTime dt, ZoneId zone) {
-    if (dt == null) {
 
-      return Optional.empty();
-    }
-    if (zone == null) {
-      return Optional.of(dt);
-    }
-    return Optional.of(dt.withZoneSameInstant(zone));
-  }
 
   public static Optional<ZonedDateTime> asZonedDateTime(String s) {
-    return asZonedDateTime(s, (ZoneId) null);
-  }
-
-  public static Optional<ZonedDateTime> asZonedDateTime(String s, ZoneId zone) {
 
     if (S.isBlank(s)) {
       return Optional.empty();
     }
     Optional<ZonedDateTime> dt = asZonedDateTime(s, DateTimeFormatter.ISO_DATE);
     if (dt.isPresent()) {
-      return offset(dt.orElse(null), zone);
+      return dt;
+
     }
 
     dt = asZonedDateTime(s, DTS_FORMATTERS);
 
     if (dt.isPresent()) {
-      return offset(dt.orElse(null), zone);
+      return dt;
     }
 
-    dt = parseNumeric(s);
-    if (dt.isPresent()) {
-      return offset(dt.orElse(null), zone);
-    }
 
-    // everythng after this point was missing zone info, so it requires an implicit
-    // zone
-    if (zone == null) {
-      return Optional.empty();
-    }
-
-    Optional<LocalDateTime> ldt = asLocalDateTime(s);
-    if (ldt.isPresent()) {
-      return Optional.of(ldt.get().atZone(zone));
-    }
-
-    Optional<LocalDate> ldo = asLocalDate(s);
-    if (ldo.isPresent()) {
-      LocalDate ld = ldo.get();
-      ZonedDateTime zdt =
-          ZonedDateTime.of(ld.getYear(), ld.getMonthValue(), ld.getDayOfMonth(), 0, 0, 0, 0, zone);
-      return Optional.of(zdt);
-    }
-
+ 
     return Optional.empty();
   }
 
-  public static LocalDate asLocalDate(ZonedDateTime dt) {
-    return LocalDate.ofInstant(dt.toInstant(), dt.getZone());
+
+
+  public static List<LocalDate> localDateRange(ZonedDateTime from, ZonedDateTime to) {
+    return localDateRange(from.toLocalDate(), to.toLocalDate());
   }
 
-  public static List<LocalDate> localDateList(ZonedDateTime from, ZonedDateTime to) {
-    return localDateList(asLocalDate(from), asLocalDate(to));
-  }
-
-  public static List<LocalDate> localDateList(LocalDate from, LocalDate to) {
+  public static List<LocalDate> localDateRange(LocalDate from, LocalDate to) {
     List<LocalDate> list = Lists.newArrayList();
     LocalDate d = from;
     while (!d.isAfter(to)) {
@@ -260,56 +210,37 @@ public class Dates {
     return list;
   }
 
-  public static Optional<ZonedDateTime> asZonedDateTime(int year, int month, int day) {
-    return Optional.of(ZonedDateTime.of(year, month, day, 0, 0, 0, 0, Zones.UTC));
-  }
 
-  public static Optional<ZonedDateTime> asZonedDateTimeUTCStartOfDay(String s) {
-    Optional<ZonedDateTime> dt = asZonedDateTime(s, Zones.UTC);
-    if (dt.isEmpty()) {
-      return dt;
-    }
-    return Optional.of(dt.get().truncatedTo(ChronoUnit.DAYS));
-  }
-
-  static Optional<ZonedDateTime> parseNumeric(String s) {
-    if (s == null) {
+  public static Optional<Instant> parseEpochMilli(String s) {
+    if (S.isBlank(s)) {
       return Optional.empty();
     }
-
-    long t = 0;
-
     try {
-      t = Long.parseLong(s.trim());
-    } catch (Exception ignore) {
-      return Optional.empty();
+    
+    return Optional.of(Instant.ofEpochMilli(Long.parseLong(s)));
     }
-
-    try {
-      String tString = Long.toString(t);
-      if (tString.length() == 8 && tString.startsWith("1") || tString.startsWith("2")) {
-
-        LocalDate dt = LocalDate.parse(tString, DateTimeFormatter.ofPattern("yyyyMMdd"));
-        return Optional.of(dt.atStartOfDay(Zones.UTC));
-      }
-
-    } catch (Exception IGNORE) {
-    }
-
-    try {
-      ZonedDateTime cutoff = ZonedDateTime.of(2200, 1, 1, 0, 0, 0, 0, Zones.UTC);
-
-      if (t < cutoff.toEpochSecond()) {
-        return Optional.of(ZonedDateTime.ofInstant(Instant.ofEpochSecond(t), Zones.UTC));
-      } else {
-        return Optional.of(ZonedDateTime.ofInstant(Instant.ofEpochMilli(t), Zones.UTC));
-      }
-    } catch (Exception e) {
-
-    }
-
+    catch (Exception ignore) {
+      //ignore
+    }  
     return Optional.empty();
   }
+  
+  public static Optional<Instant> parseEpochSecond(String s) {
+    if (S.isBlank(s)) {
+      return Optional.empty();
+    }
+    try {
+    
+    return Optional.of(Instant.ofEpochSecond(Long.parseLong(s)));
+    }
+    catch (Exception ignore) {
+      //ignore
+    }  
+    return Optional.empty();
+  }
+
+
+ 
 
   //// Everything after this point is NEW
 
@@ -396,24 +327,6 @@ public class Dates {
     } catch (Exception ignore) {
 
     }
-    return Optional.empty();
-  }
-
-  public static Optional<LocalDateTime> asLocalDateTimeXXX(String val) {
-    if (S.isBlank(val)) {
-      return Optional.empty();
-    }
-
-    Optional<TemporalAccessor> ta = parse(val, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    if (ta.isPresent()) {
-      return asLocalDateTime(ta.get());
-    }
-
-    Optional<ZonedDateTime> dt = asZonedDateTime(val);
-    if (dt.isPresent()) {
-      return Optional.of(dt.get().toLocalDateTime());
-    }
-
     return Optional.empty();
   }
 
