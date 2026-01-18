@@ -4,33 +4,34 @@ import java.util.Set;
 
 public class Mask {
 
-  public static final String mask(String input) {
-
-    if (input == null) {
-      return "";
-    }
-    if (input.equalsIgnoreCase("")) {
-      return "";
-    }
-    if (input.length() > 10) {
-      return input.substring(0, 2) + "*****" + input.substring(input.length() - 2);
-    }
-
-    return "*****";
-  }
+  static final String FIVE_STAR = "*****";
 
   static final Set<String> sensitiveStrings =
       Set.of(
           "key",
           "passwd",
-          "toKen",
+          "token",
           "password",
           "passphrase",
           "secret",
           "bearer",
           "clientid",
           "appid",
+          "jwt",
           "do_pat");
+
+  public static final String mask(String input) {
+
+    if (S.isBlank(input)) {
+      return FIVE_STAR;
+    }
+
+    if (input.length() > 14) {
+      return input.substring(0, 2) + FIVE_STAR + input.substring(input.length() - 2);
+    }
+
+    return FIVE_STAR;
+  }
 
   public static String mask(String key, String val) {
     if (isSensitiveKey(key)) {

@@ -1,12 +1,12 @@
 package bx.util;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Suppliers;
 import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 
@@ -33,7 +33,9 @@ public class RuntimeEnvironment {
             try {
 
               String s =
-                  S.notNull(Files.asCharSource(new File("/proc/1/cgroup"), Charsets.UTF_8).read())
+                  S.notNull(
+                          Files.asCharSource(new File("/proc/1/cgroup"), StandardCharsets.UTF_8)
+                              .read())
                       .orElse("")
                       .strip();
 
@@ -83,7 +85,7 @@ public class RuntimeEnvironment {
   }
 
   public boolean isSourceEnvironment() {
-    File f = new File("./src/main/java/bq");
+    File f = new File("./src/main/java/bx");
     return f.exists();
   }
 

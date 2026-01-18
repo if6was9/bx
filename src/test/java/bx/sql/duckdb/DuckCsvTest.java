@@ -102,8 +102,6 @@ public class DuckCsvTest extends BxTest {
     Assertions.assertThat(lines.get(1)).isEqualTo("Rosie,3");
   }
 
-
-
   @Test
   public void testInvalidUsage() {
     expect(

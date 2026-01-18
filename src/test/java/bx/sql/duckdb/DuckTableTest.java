@@ -270,29 +270,32 @@ public class DuckTableTest extends BxTest {
     Assertions.assertThat(t.getName()).isEqualTo("book");
     t.show();
   }
-  
-  
+
   @Test
   public void testToString() {
     DuckTable test = DuckTable.of(db().getDataSource(), "test");
-    
-    logger.atInfo().log("table: {}",test);
+
+    logger.atInfo().log("table: {}", test);
   }
+
   @Test
   public void testAddPrimaryKey() {
     db().sql("create table test(id int, name varchar)").update();
-    
-    DuckTable test = DuckTable.of(db().getDataSource(), "test");
-    
 
-    expect(IllegalArgumentException.class, ()->{
-      test.addPrimaryKey();
-    });
-    
-   test.addPrimaryKey("id");
-   
-   expect(DataAccessException.class, ()->{
-     test.addPrimaryKey("id");
-   });
+    DuckTable test = DuckTable.of(db().getDataSource(), "test");
+
+    expect(
+        IllegalArgumentException.class,
+        () -> {
+          test.addPrimaryKey();
+        });
+
+    test.addPrimaryKey("id");
+
+    expect(
+        DataAccessException.class,
+        () -> {
+          test.addPrimaryKey("id");
+        });
   }
 }

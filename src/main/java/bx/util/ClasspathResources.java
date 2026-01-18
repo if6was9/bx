@@ -7,11 +7,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.dataformat.yaml.YAMLMapper;
 
 public class ClasspathResources {
 
+  static final YAMLMapper yamlMapper = new YAMLMapper();
+
   public static JsonNode asJsonNode(final String name) {
     try {
+
+      if (name.toLowerCase().endsWith(".yml") || name.toLowerCase().endsWith(".yaml")) {
+        return yamlMapper.readTree(asByteSource(name).read());
+      }
+
       return Json.readTree(asByteSource(name).read());
     } catch (IOException e) {
       throw new BxException(e);

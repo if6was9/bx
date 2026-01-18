@@ -4,8 +4,11 @@ import bx.util.BxException;
 import bx.util.Zones;
 import com.google.common.base.Preconditions;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -65,6 +68,19 @@ public class Results {
     }
   }
 
+  public Optional<BigDecimal> getBigDecimal(int c) {
+
+    try {
+      BigDecimal bd = rs.getBigDecimal(c);
+      if (bd == null) {
+        return Optional.empty();
+      }
+      return Optional.of(bd);
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
   public Optional<BigDecimal> getBigDecimal(String name) {
 
     try {
@@ -111,6 +127,42 @@ public class Results {
         return Optional.empty();
       }
       return Optional.of(v);
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<Date> getDate(int col) {
+    try {
+      return Optional.ofNullable(rs.getDate(col));
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<Date> getDate(String col) {
+    try {
+      return Optional.ofNullable(rs.getDate(col));
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<Time> getTime(int col) {
+    try {
+      return Optional.ofNullable(rs.getTime(col));
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<Time> getTime(String col) {
+    try {
+      return Optional.ofNullable(rs.getTime(col));
 
     } catch (SQLException e) {
       throw new DbException(e);
@@ -311,6 +363,62 @@ public class Results {
 
       return toInstant(val, getSessionZone());
 
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<OffsetDateTime> getOffsetDateTime(String name) {
+    try {
+      Object val = rs.getObject(name);
+      if (val == null) {
+        return Optional.empty();
+      }
+
+      if (val instanceof OffsetDateTime) {
+        return Optional.of((OffsetDateTime) val);
+      } else {
+        // for now, no client-side conversions
+        return Optional.empty();
+      }
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<OffsetDateTime> getOffsetDateTime(int c) {
+    try {
+      Object val = rs.getObject(c);
+      if (val == null) {
+        return Optional.empty();
+      }
+
+      if (val instanceof OffsetDateTime) {
+        return Optional.of((OffsetDateTime) val);
+      } else {
+        // for now, no client-side conversions
+        return Optional.empty();
+      }
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<Timestamp> getTimestamp(int col) {
+    try {
+      Timestamp ts = rs.getTimestamp(col);
+      return Optional.ofNullable(ts);
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<Timestamp> getTimestamp(String name) {
+    try {
+      Timestamp ts = rs.getTimestamp(name);
+      return Optional.ofNullable(ts);
     } catch (SQLException e) {
       throw new DbException(e);
     }

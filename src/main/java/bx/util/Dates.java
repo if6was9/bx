@@ -1,6 +1,5 @@
 package bx.util;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -8,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -39,17 +39,66 @@ public class Dates {
           DTS_PATTERN_2,
           DTS_PATTERN_3,
           DTS_PATTERN_4,
-          DTS_PATTERN_5);
+          DTS_PATTERN_5,
+          DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'['VV']'"),
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss'['VV']'"));
 
+  public static Optional<OffsetDateTime> asOffsetDateTime(String s, ZoneOffset offset) {
+    Optional<OffsetDateTime> odt = asOffsetDateTime(s);
+    if (odt.isPresent()) {
 
+      if (offset != null) {
+        return Optional.of(odt.get().withOffsetSameInstant(offset));
+      }
+      return odt;
+    }
 
-
-  public static Optional<Instant> asInstant(String s) {
-    Optional<ZonedDateTime> x = asZonedDateTime(s);
-    if (x.isEmpty()) {
+    if (offset == null) {
       return Optional.empty();
     }
-    return Optional.of(x.get().toInstant());
+
+    Optional<LocalDateTime> ldt = asLocalDateTime(s);
+    if (ldt.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(ldt.get().atOffset(offset));
+  }
+
+  public static Optional<ZonedDateTime> asZonedDateTime(String s, ZoneId zone) {
+    Optional<ZonedDateTime> zdt = asZonedDateTime(s);
+    if (zdt.isPresent()) {
+
+      if (zone != null) {
+        return Optional.of(zdt.get().withZoneSameInstant(zone));
+      }
+      return zdt;
+    }
+
+    if (zone == null) {
+      return Optional.empty();
+    }
+
+    Optional<LocalDateTime> ldt = asLocalDateTime(s);
+    if (ldt.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(ldt.get().atZone(zone));
+  }
+
+  public static Optional<Instant> asInstant(String s, ZoneId zone) {
+
+    Optional<ZonedDateTime> zdt = asZonedDateTime(s, zone);
+    if (zdt.isPresent()) {
+      return Optional.of(zdt.get().toInstant());
+    }
+
+    return Optional.empty();
+  }
+
+  public static Optional<Instant> asInstant(String s) {
+    return asInstant(s, null);
   }
 
   public static Optional<ZonedDateTime> asZonedDateTime(String s, List<DateTimeFormatter> list) {
@@ -170,8 +219,6 @@ public class Dates {
     return Optional.empty();
   }
 
-
-
   public static Optional<ZonedDateTime> asZonedDateTime(String s) {
 
     if (S.isBlank(s)) {
@@ -180,7 +227,6 @@ public class Dates {
     Optional<ZonedDateTime> dt = asZonedDateTime(s, DateTimeFormatter.ISO_DATE);
     if (dt.isPresent()) {
       return dt;
-
     }
 
     dt = asZonedDateTime(s, DTS_FORMATTERS);
@@ -189,18 +235,10 @@ public class Dates {
       return dt;
     }
 
-
- 
     return Optional.empty();
   }
 
-
-
-  public static List<LocalDate> localDateRange(ZonedDateTime from, ZonedDateTime to) {
-    return localDateRange(from.toLocalDate(), to.toLocalDate());
-  }
-
-  public static List<LocalDate> localDateRange(LocalDate from, LocalDate to) {
+  public static List<LocalDate> range(LocalDate from, LocalDate to) {
     List<LocalDate> list = Lists.newArrayList();
     LocalDate d = from;
     while (!d.isAfter(to)) {
@@ -210,37 +248,31 @@ public class Dates {
     return list;
   }
 
-
   public static Optional<Instant> parseEpochMilli(String s) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
     try {
-    
-    return Optional.of(Instant.ofEpochMilli(Long.parseLong(s)));
+
+      return Optional.of(Instant.ofEpochMilli(Long.parseLong(s)));
+    } catch (Exception ignore) {
+      // ignore
     }
-    catch (Exception ignore) {
-      //ignore
-    }  
     return Optional.empty();
   }
-  
+
   public static Optional<Instant> parseEpochSecond(String s) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
     try {
-    
-    return Optional.of(Instant.ofEpochSecond(Long.parseLong(s)));
+
+      return Optional.of(Instant.ofEpochSecond(Long.parseLong(s)));
+    } catch (Exception ignore) {
+      // ignore
     }
-    catch (Exception ignore) {
-      //ignore
-    }  
     return Optional.empty();
   }
-
-
- 
 
   //// Everything after this point is NEW
 
