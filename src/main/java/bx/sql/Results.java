@@ -221,6 +221,19 @@ public class Results {
     }
   }
 
+  public Optional<Boolean> getBoolean(int col) {
+    try {
+      boolean v = rs.getBoolean(col);
+      if (rs.wasNull()) {
+        return Optional.empty();
+      }
+      return Optional.of(v);
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
   private static Optional<LocalDate> toLocalDate(Object input, ZoneId zone) {
     if (input == null) {
       return Optional.empty();
@@ -429,6 +442,19 @@ public class Results {
     try {
 
       Object val = rs.getObject(name);
+
+      return toZonedDateTime(val, getSessionZone());
+
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+  }
+
+  public Optional<ZonedDateTime> getZonedDateTime(int col) {
+
+    try {
+
+      Object val = rs.getObject(col);
 
       return toZonedDateTime(val, getSessionZone());
 

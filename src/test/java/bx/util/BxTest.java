@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
 public abstract class BxTest {
 
@@ -55,6 +56,11 @@ public abstract class BxTest {
 
   public DataSource getDataSource() {
     return db().getDataSource();
+  }
+
+  public StatementSpec sql(String sql) {
+
+    return db().sql(sql);
   }
 
   public Db db() {
@@ -112,6 +118,7 @@ public abstract class BxTest {
       block.run();
       Assertions.failBecauseExceptionWasNotThrown(type);
     } catch (Exception e) {
+
       Assertions.assertThat(e).isInstanceOf(type);
     }
   }

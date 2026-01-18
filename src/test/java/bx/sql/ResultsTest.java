@@ -14,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessException;
 
 public class ResultsTest extends BxTest {
 
@@ -440,6 +441,18 @@ public class ResultsTest extends BxTest {
     Assertions.assertThat(latch.await(5, TimeUnit.SECONDS))
         .withFailMessage("code should have executed")
         .isTrue();
+
+    sql("select cast('2025-12-25T10:00:00Z' as TIMESTAMPTZ) as ts")
+        .query(
+            rs -> {
+              Results results = Results.create(rs);
+
+              Assertions.assertThat(results.getOffsetDateTime(1).get())
+                  .isEqualTo(rs.getObject(1))
+                  .isInstanceOf(OffsetDateTime.class);
+              Assertions.assertThat(results.getZonedDateTime(1).get().toInstant())
+                  .isEqualTo(((OffsetDateTime) rs.getObject(1)).toInstant());
+            });
   }
 
   @Test
@@ -473,4 +486,122 @@ public class ResultsTest extends BxTest {
         .withFailMessage("code should have executed")
         .isTrue();
   }
+
+  @Test
+  public void testInvalidColumn() {
+    db().sql("select 1 as foo")
+        .query(
+            rs -> {
+              Results results = Results.create(rs);
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getString(0);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getString(2);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getString("invalid");
+                  });
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getInt(0);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getInt(2);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getInt("invalid");
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getTimestamp(0);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getTimestamp(2);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getTimestamp("invalid");
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getOffsetDateTime(0);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getOffsetDateTime(2);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getOffsetDateTime("invalid");
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getZonedDateTime(0);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getZonedDateTime(2);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getZonedDateTime("invalid");
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getBoolean(0);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getBoolean(2);
+                  });
+
+              expect(
+                  DataAccessException.class,
+                  () -> {
+                    results.getBoolean("invalid");
+                  });
+            });
+  }
+
+  @Test
+  public void testTimestamp2() {}
 }
