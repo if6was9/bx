@@ -11,6 +11,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -237,138 +238,40 @@ public class Results {
     }
   }
 
-  private static Optional<LocalDate> toLocalDate(Object input, ZoneId zone) {
-    if (input == null) {
+
+
+  private Optional<ZonedDateTime> toZonedDateTime(Timestamp ts, ZoneId zone) {
+    if (ts==null) {
       return Optional.empty();
     }
-    if (input instanceof LocalDate) {
-      return Optional.of((LocalDate) input);
+    if (zone==null) {
+      throw new DbException("cannot covert Timestamp to ZonedDateTime without timestamp");
     }
-    if (input instanceof java.sql.Date) {
-      java.sql.Date d = (java.sql.Date) input;
-      return Optional.of(d.toLocalDate());
-    }
-    if (input instanceof java.sql.Timestamp) {
-      java.sql.Timestamp ts = (java.sql.Timestamp) input;
-      return Optional.of(ts.toLocalDateTime().toLocalDate());
-    }
-    if (input instanceof Instant) {
-      Instant t = (Instant) input;
-      ZonedDateTime dt = t.atZone(zone);
-      return Optional.of(dt.toLocalDate());
-    }
-    if (input instanceof ZonedDateTime) {
-      ZonedDateTime t = (ZonedDateTime) input;
-      return Optional.of(t.toLocalDate());
-    }
-    if (input instanceof OffsetDateTime) {
-      OffsetDateTime t = (OffsetDateTime) input;
-      return Optional.of(t.toLocalDate());
-    }
-    throw new BxException("unable to convert " + input.getClass() + " to LocalDate");
+    return Optional.of(ZonedDateTime.ofInstant(ts.toInstant(), zone));
+    
   }
 
-  public ZoneId getSessionZone() {
-    return Zones.UTC;
-  }
 
-  public Optional<ZonedDateTime> toZonedDateTime(Object input) {
-    return toZonedDateTime(input, getSessionZone());
-  }
-
-  private Optional<ZonedDateTime> toZonedDateTime(Object input, ZoneId zone) {
-    if (input == null) {
-      return Optional.empty();
-    }
-    if (zone == null) {
-      zone = getSessionZone();
-    }
-
-    if (input instanceof LocalDate) {
-      LocalDate d = (LocalDate) input;
-      return Optional.of(d.atStartOfDay(zone));
-    }
-    if (input instanceof java.sql.Date) {
-      java.sql.Date d = (java.sql.Date) input;
-      return Optional.of(d.toLocalDate().atStartOfDay(zone));
-    }
-    if (input instanceof java.sql.Timestamp) {
-      java.sql.Timestamp ts = (java.sql.Timestamp) input;
-      return Optional.of(ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts.getTime()), zone));
-    }
-    if (input instanceof Instant) {
-      Instant t = (Instant) input;
-      return Optional.of(ZonedDateTime.ofInstant(t, zone));
-    }
-    if (input instanceof ZonedDateTime) {
-      ZonedDateTime t = (ZonedDateTime) input;
-      return Optional.of(t);
-    }
-    if (input instanceof OffsetDateTime) {
-      OffsetDateTime t = (OffsetDateTime) input;
-      return Optional.of(t.toZonedDateTime());
-    }
-    throw new BxException("unable to convert " + input.getClass() + " to ZonedDateTime");
-  }
-
-  public Optional<Instant> toInstant(Object input) {
-    return toInstant(input, getSessionZone());
-  }
-
-  private Optional<Instant> toInstant(Object input, ZoneId zone) {
-    if (input == null) {
-      return Optional.empty();
-    }
-    if (zone == null) {
-      zone = getSessionZone();
-    }
-    if (input instanceof LocalDate) {
-      LocalDate d = (LocalDate) input;
-      return Optional.of(d.atStartOfDay(zone).toInstant());
-    }
-    if (input instanceof java.sql.Date) {
-      java.sql.Date d = (java.sql.Date) input;
-      return Optional.of(d.toLocalDate().atStartOfDay(zone).toInstant());
-    }
-    if (input instanceof java.sql.Timestamp) {
-      java.sql.Timestamp ts = (java.sql.Timestamp) input;
-      return Optional.of(ts.toInstant());
-    }
-    if (input instanceof Instant) {
-      Instant t = (Instant) input;
-      return Optional.of(t);
-    }
-    if (input instanceof ZonedDateTime) {
-      ZonedDateTime t = (ZonedDateTime) input;
-      return Optional.of(t.toInstant());
-    }
-    if (input instanceof OffsetDateTime) {
-      OffsetDateTime t = (OffsetDateTime) input;
-      return Optional.of(t.toInstant());
-    }
-    throw new BxException("unable to convert " + input.getClass() + " to ZonedDateTime");
-  }
 
   public Optional<LocalDate> getLocalDate(int c) {
-    try {
-      Object x = rs.getObject(c);
 
-      return toLocalDate(x, getSessionZone());
-
-    } catch (SQLException e) {
-      throw new DbException(e);
-    }
+      
+      return getLocalDate(getColumnName(c));
+      
   }
 
   public Optional<LocalDate> getLocalDate(String name) {
-    try {
-      Object x = rs.getObject(name);
-
-      return toLocalDate(x, getSessionZone());
-
-    } catch (SQLException e) {
-      throw new DbException(e);
+    
+    Optional<Timestamp> ts = getTimestamp(name);
+    
+    if (ts.isEmpty()) {
+      return Optional.empty();
     }
+    
+    return Optional.of(ts.get().toLocalDateTime().toLocalDate());
+    
+    
+
   }
 
 
@@ -476,7 +379,16 @@ public class Results {
       }
 
       if (val instanceof OffsetDateTime) {
-        return toZonedDateTime((OffsetDateTime)val,zone);
+        OffsetDateTime odt = (OffsetDateTime) val;
+       
+        if (zone==null) {
+          return Optional.of(odt.toZonedDateTime());
+        }
+        else {
+          return Optional.of(odt.toZonedDateTime().withZoneSameInstant(zone));
+          
+        }
+
       } 
       else if (val instanceof Timestamp) {
         return toZonedDateTime((Timestamp)val,zone); 
@@ -495,6 +407,8 @@ public class Results {
     
     throw new DbException("could not obtain OffsetDateTime");
   }
+  
+
   
   public Optional<Instant> getInstant(int c, ZoneId zone) {
     return getInstant(getColumnName(c),zone);
