@@ -415,10 +415,11 @@ public class ResultsTest extends BxTest {
             rs -> {
               Results results = Results.create(rs);
 
-              expect(DbException.class,()->{
-                results.getInstant("ts");
-              });
-           
+              expect(
+                  DbException.class,
+                  () -> {
+                    results.getInstant("ts");
+                  });
 
               Assertions.assertThat(rs.getObject("ts")).isInstanceOf(java.sql.Timestamp.class);
 

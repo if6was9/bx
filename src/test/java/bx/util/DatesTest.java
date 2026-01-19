@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAccessor;
+import java.util.Random;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -40,7 +41,12 @@ public class DatesTest {
                 .toInstant()
                 .toEpochMilli())
         .isEqualTo(1733809243000L);
-
+    Assertions.assertThat(
+            Dates.asZonedDateTime("2024-12-09 21:40:43-08:00[America/Los_Angeles]")
+                .get()
+                .toInstant()
+                .toEpochMilli())
+        .isEqualTo(1733809243000L);
     Assertions.assertThat(
             Dates.asZonedDateTime("2024-12-09T21:40:43-08:00[America/Los_Angeles]")
                 .get()
@@ -366,5 +372,43 @@ public class DatesTest {
     Assertions.assertThat(Dates.asInstant(localDateTimeString, Zones.UTC)).isNotEmpty();
     Assertions.assertThat(Dates.asInstant(localDateTimeString, Zones.UTC).get())
         .isEqualTo(Dates.asInstant(localDateTimeString + "Z").get());
+  }
+
+  public void checkInstant(Instant t) {
+
+    Assertions.assertThat(Dates.asInstant(t.toString()).get()).isEqualTo(t);
+    Assertions.assertThat(Dates.asZonedDateTime(t.toString()).get()).isEqualTo(t.atZone(Zones.UTC));
+    Assertions.assertThat(Dates.asZonedDateTime(t.toString(), Zones.NYC).get().getZone())
+        .isEqualTo(Zones.NYC);
+    Assertions.assertThat(Dates.asInstant(t.toString()).get()).isEqualTo(t);
+    Assertions.assertThat(Dates.asOffsetDateTime(t.toString()).get().toZonedDateTime())
+        .isEqualTo(ZonedDateTime.ofInstant(t, Zones.LAX));
+
+    Assertions.assertThat(
+            Dates.asInstant(Dates.asZonedDateTime(t.toString(), Zones.NYC).get().toString()).get())
+        .isEqualTo(t);
+    Assertions.assertThat(
+            Dates.asInstant(
+                    Dates.asOffsetDateTime(t.toString(), ZoneOffset.ofHours(-6)).get().toString())
+                .get())
+        .isEqualTo(t);
+    Assertions.assertThat(Dates.asZonedDateTime("\t " + t.toString() + " ").get())
+        .isEqualTo(t.atZone(Zones.UTC));
+
+    Assertions.assertThat(Dates.asLocalDate(t.toString()).get().toString())
+        .isEqualTo(t.toString().substring(0, 10));
+    Assertions.assertThat(Dates.asLocalDateTime(t.toString()).get().toString())
+        .isEqualTo(ZonedDateTime.ofInstant(t, Zones.UTC).toLocalDateTime().toString());
+  }
+
+  @Test
+  public void autoTest() throws Exception {
+
+    Random r = new Random();
+    long maxRange = ZonedDateTime.of(2100, 1, 1, 0, 0, 0, 0, Zones.UTC).toInstant().toEpochMilli();
+
+    for (int count = 0; count < 10000; count++) {
+      checkInstant(Instant.ofEpochMilli(r.nextLong() % maxRange));
+    }
   }
 }

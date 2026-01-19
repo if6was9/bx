@@ -15,31 +15,22 @@ import java.time.temporal.TemporalAccessor;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Collection of tolerant String -> date/time parsing. All operations in this class are guaranteed not to throw exceptions.
+ * Optional.empty should be returned on any/all parsing failure.
+ */
 public class Dates {
-
-  private static final DateTimeFormatter DTS_PATTERN_0 =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX");
-  private static final DateTimeFormatter DTS_PATTERN_1 =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSX");
-  private static final DateTimeFormatter DTS_PATTERN_2 =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSX");
-  private static final DateTimeFormatter DTS_PATTERN_3 =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
-  private static final DateTimeFormatter DTS_PATTERN_4 =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX");
-  private static final DateTimeFormatter DTS_PATTERN_5 =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 
   private static final List<DateTimeFormatter> DTS_FORMATTERS =
       List.of(
           DateTimeFormatter.ISO_DATE_TIME,
           DateTimeFormatter.ISO_INSTANT,
-          DTS_PATTERN_0,
-          DTS_PATTERN_1,
-          DTS_PATTERN_2,
-          DTS_PATTERN_3,
-          DTS_PATTERN_4,
-          DTS_PATTERN_5,
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssX"),
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSX"),
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSX"),
+          DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX"),
+          DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSX"),
+          DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX"),
           DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'['VV']'"),
           DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss'['VV']'"));
 
@@ -52,7 +43,6 @@ public class Dates {
       }
       return odt;
     }
-
     if (offset == null) {
       return Optional.empty();
     }
@@ -102,13 +92,14 @@ public class Dates {
   }
 
   public static Optional<ZonedDateTime> asZonedDateTime(String s, List<DateTimeFormatter> list) {
-    if (list == null) {
-      return Optional.empty();
-    }
+
     if (s == null) {
       return Optional.empty();
     }
-
+    if (list == null) {
+      return Optional.empty();
+    }
+    s = s.strip();
     for (DateTimeFormatter dtf : list) {
       if (dtf != null) {
         Optional<TemporalAccessor> ta = parse(s, dtf);
@@ -135,6 +126,7 @@ public class Dates {
       return Optional.empty();
     }
 
+    s = s.strip();
     try {
       LocalDate dt =
           LocalDate.parse(
@@ -180,7 +172,8 @@ public class Dates {
     }
 
     String s = input;
-    // hack!!!
+
+    s = s.strip();
     if (s.endsWith(".000000Z")) {
       s = s.replace(".000000Z", "");
     }
@@ -224,6 +217,7 @@ public class Dates {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
+    s = s.strip();
     Optional<ZonedDateTime> dt = asZonedDateTime(s, DateTimeFormatter.ISO_DATE);
     if (dt.isPresent()) {
       return dt;
@@ -235,6 +229,13 @@ public class Dates {
       return dt;
     }
 
+    if (s.length() > 11 && s.charAt(10) == ' ') {
+
+      char[] chars = s.toCharArray();
+      chars[10] = 'T';
+      s = new String(chars);
+      return asZonedDateTime(s);
+    }
     return Optional.empty();
   }
 
@@ -248,12 +249,13 @@ public class Dates {
     return list;
   }
 
-  public static Optional<Instant> parseEpochMilli(String s) {
+  static Optional<Instant> parseEpochMilli(String s) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
     try {
 
+      s = s.strip();
       return Optional.of(Instant.ofEpochMilli(Long.parseLong(s)));
     } catch (Exception ignore) {
       // ignore
@@ -261,12 +263,12 @@ public class Dates {
     return Optional.empty();
   }
 
-  public static Optional<Instant> parseEpochSecond(String s) {
+  static Optional<Instant> parseEpochSecond(String s) {
     if (S.isBlank(s)) {
       return Optional.empty();
     }
     try {
-
+      s = s.strip();
       return Optional.of(Instant.ofEpochSecond(Long.parseLong(s)));
     } catch (Exception ignore) {
       // ignore
@@ -274,9 +276,8 @@ public class Dates {
     return Optional.empty();
   }
 
-  //// Everything after this point is NEW
-
   public static Optional<TemporalAccessor> parse(String input, DateTimeFormatter... formatters) {
+
     return parse(input, List.of(formatters));
   }
 
@@ -289,6 +290,7 @@ public class Dates {
       return Optional.empty();
     }
 
+    input = input.strip();
     for (DateTimeFormatter dtf : formatters) {
 
       if (dtf != null) {
@@ -303,19 +305,6 @@ public class Dates {
       }
     }
 
-    return Optional.empty();
-  }
-
-  public static Optional<LocalDateTime> asLocalDateTime(TemporalAccessor ta) {
-    if (ta == null) {
-      return Optional.empty();
-    }
-    try {
-      LocalDateTime t = LocalDateTime.from(ta);
-      return Optional.ofNullable(t);
-    } catch (Exception ignore) {
-
-    }
     return Optional.empty();
   }
 
@@ -349,6 +338,19 @@ public class Dates {
     return Optional.empty();
   }
 
+  public static Optional<LocalDateTime> asLocalDateTime(TemporalAccessor ta) {
+    if (ta == null) {
+      return Optional.empty();
+    }
+    try {
+      LocalDateTime t = LocalDateTime.from(ta);
+      return Optional.ofNullable(t);
+    } catch (Exception ignore) {
+
+    }
+    return Optional.empty();
+  }
+
   public static Optional<LocalTime> asLocalTime(TemporalAccessor ta) {
     if (ta == null) {
       return Optional.empty();
@@ -368,6 +370,7 @@ public class Dates {
       return Optional.empty();
     }
 
+    val = val.strip();
     Optional<TemporalAccessor> ta = parse(val, DateTimeFormatter.ISO_LOCAL_TIME);
     if (ta.isPresent()) {
       return asLocalTime(ta.get());
