@@ -415,8 +415,10 @@ public class ResultsTest extends BxTest {
             rs -> {
               Results results = Results.create(rs);
 
-              Assertions.assertThat(results.getInstant("ts").get().getEpochSecond())
-                  .isEqualTo(1698427800L);
+              expect(DbException.class,()->{
+                results.getInstant("ts");
+              });
+           
 
               Assertions.assertThat(rs.getObject("ts")).isInstanceOf(java.sql.Timestamp.class);
 

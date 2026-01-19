@@ -9,8 +9,7 @@ public class DbException extends DataAccessException {
     super(s);
   }
 
-  public DbException(SQLException e) {
-
+  public DbException(Exception e) {
     super(e.getMessage(), e);
   }
 }
