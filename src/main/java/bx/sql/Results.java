@@ -13,8 +13,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+
+import org.springframework.dao.DataAccessException;
 
 /**
  * Simple wrapper for ResultSet
@@ -368,56 +371,11 @@ public class Results {
     }
   }
 
-  public Optional<Instant> getInstant(String name) {
 
-    try {
 
-      Object val = rs.getObject(name);
 
-      return toInstant(val, getSessionZone());
 
-    } catch (SQLException e) {
-      throw new DbException(e);
-    }
-  }
 
-  public Optional<OffsetDateTime> getOffsetDateTime(String name) {
-    try {
-      Object val = rs.getObject(name);
-      if (val == null) {
-        return Optional.empty();
-      }
-
-      if (val instanceof OffsetDateTime) {
-        return Optional.of((OffsetDateTime) val);
-      } else {
-        // for now, no client-side conversions
-        return Optional.empty();
-      }
-
-    } catch (SQLException e) {
-      throw new DbException(e);
-    }
-  }
-
-  public Optional<OffsetDateTime> getOffsetDateTime(int c) {
-    try {
-      Object val = rs.getObject(c);
-      if (val == null) {
-        return Optional.empty();
-      }
-
-      if (val instanceof OffsetDateTime) {
-        return Optional.of((OffsetDateTime) val);
-      } else {
-        // for now, no client-side conversions
-        return Optional.empty();
-      }
-
-    } catch (SQLException e) {
-      throw new DbException(e);
-    }
-  }
 
   public Optional<Timestamp> getTimestamp(int col) {
     try {
@@ -437,29 +395,125 @@ public class Results {
     }
   }
 
-  public Optional<ZonedDateTime> getZonedDateTime(String name) {
 
+
+
+
+  
+  
+  private String getColumnName(int c) {
     try {
-
-      Object val = rs.getObject(name);
-
-      return toZonedDateTime(val, getSessionZone());
-
-    } catch (SQLException e) {
+      // some drivers don't throw SQLException 
+      // and instead throw RuntimeException for out-of-bounds conditons
+      // we handle that here
+      return rs.getMetaData().getColumnName(c);
+    }
+    catch (SQLException e) {
+      throw new DbException(e);
+    }
+    catch (DataAccessException e) {
+      throw e;
+    }
+    catch (RuntimeException e) {
       throw new DbException(e);
     }
   }
-
-  public Optional<ZonedDateTime> getZonedDateTime(int col) {
-
+  
+  
+ ///////////
+ /// ////////
+  public Optional<OffsetDateTime> getOffsetDateTime(String c) {
+    return getOffsetDateTime(c,null);
+  }
+  public Optional<OffsetDateTime> getOffsetDateTime(int c) {
+    return getOffsetDateTime(c,null);
+  }
+  public Optional<OffsetDateTime> getOffsetDateTime(int c, ZoneOffset offset) {
+    return getOffsetDateTime(getColumnName(c),offset);
+  }
+  public Optional<OffsetDateTime> getOffsetDateTime(String c, ZoneOffset offset) {
     try {
+      Object val = rs.getObject(c);
+      if (val == null) {
+        return Optional.empty();
+      }
 
-      Object val = rs.getObject(col);
-
-      return toZonedDateTime(val, getSessionZone());
-
+      if (val instanceof OffsetDateTime) {
+        return Optional.of((OffsetDateTime) val);
+      } 
+      
+      if (offset!=null) {
+        Optional<Timestamp> ts = getTimestamp(c);
+        
+        if (ts.isPresent()) {
+          return Optional.of(OffsetDateTime.of(ts.get().toLocalDateTime(),offset));
+        }
+      }
+      
+      
+      
     } catch (SQLException e) {
       throw new DbException(e);
     }
+    
+    throw new DbException("could not obtain OffsetDateTime");
+  }
+  
+  public Optional<ZonedDateTime> getZonedDateTime(String c) {
+    return getZonedDateTime(c,null);
+  }
+  public Optional<ZonedDateTime> getZonedDateTime(int c) {
+    return getZonedDateTime(c,null);
+  }
+  public Optional<ZonedDateTime> getZonedDateTime(int c, ZoneId zone) {
+    return getZonedDateTime(getColumnName(c),zone);
+  }
+  public Optional<ZonedDateTime> getZonedDateTime(String c, ZoneId zone) {
+    try {
+      Object val = rs.getObject(c);
+      if (val == null) {
+        return Optional.empty();
+      }
+
+      if (val instanceof OffsetDateTime) {
+        return toZonedDateTime((OffsetDateTime)val,zone);
+      } 
+      else if (val instanceof Timestamp) {
+        return toZonedDateTime((Timestamp)val,zone); 
+      }
+   
+      
+        Timestamp ts = rs.getTimestamp(c);
+        if (ts!=null) {
+          return toZonedDateTime((Timestamp)val,zone); 
+        }
+
+      
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
+    
+    throw new DbException("could not obtain OffsetDateTime");
+  }
+  
+  public Optional<Instant> getInstant(int c, ZoneId zone) {
+    return getInstant(getColumnName(c),zone);
+  }
+  public Optional<Instant> getInstant(int c) {
+    return getInstant(c ,null);
+  }
+  public Optional<Instant> getInstant(String c) {
+    return getInstant(c,null);
+  }
+  public Optional<Instant> getInstant(String c, ZoneId zone) {
+
+    Optional<ZonedDateTime> zdt = getZonedDateTime(c,zone);
+    
+    if (zdt.isEmpty()) {
+      return Optional.empty();
+    }
+    
+    return Optional.of(zdt.get().toInstant());
+  
   }
 }
