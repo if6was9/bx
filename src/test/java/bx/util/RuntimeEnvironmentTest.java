@@ -14,6 +14,7 @@ public class RuntimeEnvironmentTest extends BxTest {
     Assertions.assertThat(re.isSourceEnvironment()).isTrue();
     Assertions.assertThat(re.isRunningInLambda()).isFalse();
     Assertions.assertThat(re.isRunningInFly()).isFalse();
+    Assertions.assertThat(re.isUnitTestEnvironment()).isTrue();
     if (System.getenv("CI") != null) {
       Assertions.assertThat(re.isMac()).isFalse();
       Assertions.assertThat(re.isLinux()).isTrue();
