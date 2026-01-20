@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
@@ -628,15 +629,17 @@ public class ResultsTest extends BxTest {
   }
 
   @Test
-  public void testTimestampWithoutZone() {
+  public void testTimestampWithoutZone() throws InterruptedException {
 
     String ts = "2025-12-25T03:00:00";
 
+    CountDownLatch latch = new CountDownLatch(1);
     db().sql(String.format("select cast('%s' as TIMESTAMP) as ts", ts))
         .query(
             rs -> {
               Results results = Results.create(rs);
 
+              latch.countDown();
               // the actual LocalDate values are dependent on the server TZ!!!
               Assertions.assertThat(results.getLocalDate(1).get().toString())
                   .isEqualTo(rs.getDate(1).toLocalDate().toString());
@@ -669,6 +672,8 @@ public class ResultsTest extends BxTest {
               Assertions.assertThat(results.getOffsetDateTime(1).get().toInstant())
                   .isEqualTo(rs.getTimestamp(1).toInstant());
             });
+
+    Assertions.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
   }
 
   @Test
@@ -684,7 +689,9 @@ public class ResultsTest extends BxTest {
   public void testTimestampWithZone() {
 
     String ts = "2025-12-25T03:00:00Z";
+
     long epochMilli = Dates.asInstant(ts).get().toEpochMilli();
+    Instant t = Instant.ofEpochMilli(epochMilli);
     Assertions.assertThat(epochMilli).isEqualTo(1766631600000L);
 
     db().sql(String.format("select cast('%s' as TIMESTAMPTZ) as ts", ts))
@@ -698,12 +705,17 @@ public class ResultsTest extends BxTest {
 
               // These will come back in local zone.  On my machine in America/Los_Angeles
               logger.atInfo().log("ResultSet.getDate(): {}", rs.getDate(1));
+
+              Assertions.assertThat(
+                      ZonedDateTime.ofInstant(
+                              rs.getTimestamp(1).toInstant(), ZoneId.systemDefault())
+                          .toLocalDate()
+                          .toString())
+                  .isEqualTo(rs.getDate(1).toString());
+
               logger.atInfo().log(
                   "ResultSet.getTimestamp(): {}", rs.getTimestamp(1)); // 2025-12-24 19:00:00.0
 
-              // Timestamp.toInstant() will assume that the date in Timestamp is for the LOCAL ZONE
-              // On my machine set to America/Los_Angeles, this means taht the instant will be set
-              // to 2025-12-25T11:00:00Z
               logger.atInfo().log(
                   "ResultSet.getTimestamp().toInstant(): {}", rs.getTimestamp(1).toInstant());
 
@@ -711,6 +723,17 @@ public class ResultsTest extends BxTest {
                   .isEqualTo(epochMilli);
               Assertions.assertThat(results.getZonedDateTime(1).get().toInstant().toString())
                   .isEqualTo(ts);
+
+              Assertions.assertThat(results.getLocalDate(1).get())
+                  .isEqualTo(rs.getTimestamp(1).toLocalDateTime().toLocalDate());
+              Assertions.assertThat(results.getInstant(1).get())
+                  .isEqualTo(rs.getTimestamp(1).toInstant());
+
+              Assertions.assertThat(results.getZonedDateTime(1).get().toInstant())
+                  .isEqualTo(rs.getTimestamp(1).toInstant());
+
+              Assertions.assertThat(results.getOffsetDateTime(1).get().toInstant())
+                  .isEqualTo(rs.getTimestamp(1).toInstant());
             });
   }
 }
