@@ -9,6 +9,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -16,9 +17,7 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 
-/**
- * Simple wrapper for ResultSet
- */
+/** Simple wrapper for ResultSet */
 public class Results {
 
   ResultSet rs;
@@ -239,9 +238,24 @@ public class Results {
       return Optional.empty();
     }
     if (zone == null) {
-      throw new DbException("cannot convert Timestamp to ZonedDateTime without timestamp");
+      throw new DbException("cannot convert Timestamp to ZonedDateTime without ZoneId");
     }
     return Optional.of(ZonedDateTime.ofInstant(ts.toInstant(), zone));
+  }
+
+  public Optional<LocalDateTime> getLocalDateTime(int c) {
+    return getLocalDateTime(getColumnName(c));
+  }
+
+  public Optional<LocalDateTime> getLocalDateTime(String name) {
+
+    Optional<Timestamp> ts = getTimestamp(name);
+
+    if (ts.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(ts.get().toLocalDateTime());
   }
 
   public Optional<LocalDate> getLocalDate(int c) {
@@ -250,14 +264,12 @@ public class Results {
   }
 
   public Optional<LocalDate> getLocalDate(String name) {
-
-    Optional<Timestamp> ts = getTimestamp(name);
-
-    if (ts.isEmpty()) {
+    Optional<LocalDateTime> dt = getLocalDateTime(name);
+    if (dt.isEmpty()) {
       return Optional.empty();
     }
 
-    return Optional.of(ts.get().toLocalDateTime().toLocalDate());
+    return Optional.of(dt.get().toLocalDate());
   }
 
   public Optional<Timestamp> getTimestamp(int col) {
@@ -384,5 +396,13 @@ public class Results {
     }
 
     return Optional.of(zdt.get().toInstant());
+  }
+
+  public boolean isClosed() {
+    try {
+      return rs.isClosed();
+    } catch (SQLException e) {
+      throw new DbException(e);
+    }
   }
 }

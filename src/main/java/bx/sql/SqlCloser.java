@@ -27,7 +27,8 @@ public class SqlCloser implements AutoCloseable {
 
     for (ResultSet rs : resultSets.reversed()) {
       try {
-        logger.atDebug().log("closing %s", rs);
+
+        logger.atDebug().log("closing {}", rs);
         rs.close();
       } catch (RuntimeException | SQLException e) {
         exceptions.add(e);
@@ -46,13 +47,8 @@ public class SqlCloser implements AutoCloseable {
     for (Connection c : connections.reversed()) {
       try {
 
-        if (c.getClass().getName().contains("duckdb")) {
-          // special case...DuckDB connections don't want to be closed
-        } else {
-
-          logger.atTrace().log("closing %s", c);
-          c.close();
-        }
+        logger.atDebug().log("closing {}", c);
+        c.close();
 
       } catch (RuntimeException | SQLException e) {
         exceptions.add(e);
@@ -69,6 +65,9 @@ public class SqlCloser implements AutoCloseable {
       if (t instanceof RuntimeException) {
         RuntimeException e = ((RuntimeException) t);
         throw e;
+
+      } else if (t instanceof SQLException) {
+        throw new DbException((SQLException) t);
       } else {
         throw new BxException(t);
       }
