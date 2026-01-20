@@ -14,6 +14,7 @@ public class RuntimeEnvironment {
 
   static Logger logger = Slogger.forEnclosingClass();
   public static final RuntimeEnvironment instance = new RuntimeEnvironment();
+  Config config;
 
   Supplier<Boolean> kubeSupplier =
       Suppliers.memoize(
@@ -21,8 +22,8 @@ public class RuntimeEnvironment {
             if (!isRunningInContainer()) {
               return false;
             }
-            if (System.getenv("KUBERNETES_PORT") != null
-                && System.getenv("KUBERNETES_SERVICE_HOST") != null) {
+            if (config.get("KUBERNETES_PORT").isPresent()
+                && config.get("KUBERNETES_SERVICE_HOST").isPresent()) {
               return true;
             }
             return false;
@@ -78,7 +79,13 @@ public class RuntimeEnvironment {
             return false;
           });
 
-  private RuntimeEnvironment() {}
+  public RuntimeEnvironment() {
+    this(Config.get());
+  }
+
+  RuntimeEnvironment(Config cfg) {
+    this.config = cfg;
+  }
 
   public static RuntimeEnvironment get() {
     return instance;
@@ -90,7 +97,7 @@ public class RuntimeEnvironment {
   }
 
   public boolean isRunningInFly() {
-    return S.isNotBlank(System.getenv("FLY_APP_NAME"));
+    return config.get("FLY_APP_NAME").isPresent();
   }
 
   public boolean isRunningInKubernetes() {
@@ -106,7 +113,7 @@ public class RuntimeEnvironment {
   }
 
   private String getOsProperty() {
-    return S.notBlank(System.getProperty("os.name")).orElse("").toLowerCase().trim();
+    return config.get("os.name").orElse("").toLowerCase().trim();
   }
 
   public boolean isLinux() {
@@ -118,9 +125,9 @@ public class RuntimeEnvironment {
   }
 
   public boolean isCIEnvironment() {
-    if (System.getenv("GITHUB_WORKFLOW") != null) {
+    if (config.get("GITHUB_WORKFLOW").isPresent()) {
       return true;
-    } else if (System.getenv("CI") != null) {
+    } else if (config.get("CI").isPresent()) {
       return true;
     }
 
@@ -134,7 +141,7 @@ public class RuntimeEnvironment {
   Supplier<Boolean> lambdaSupplier =
       Suppliers.memoize(
           () -> {
-            return System.getenv("LAMBDA_TASK_ROOT") != null;
+            return config.get("LAMBDA_TASK_ROOT").isPresent();
           });
 
   Supplier<Boolean> desktopSupported =
