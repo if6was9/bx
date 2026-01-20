@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,8 +56,8 @@ public class UrlBuilder {
                 pair -> {
                   List<String> kvlist = Splitter.on('=').omitEmptyStrings().splitToList(pair);
                   if (kvlist.size() == 2) {
-                    String k = URLDecoder.decode(kvlist.get(0), Charsets.UTF_8);
-                    String v = URLDecoder.decode(kvlist.get(1), Charsets.UTF_8);
+                    String k = URLDecoder.decode(kvlist.get(0), StandardCharsets.UTF_8);
+                    String v = URLDecoder.decode(kvlist.get(1), StandardCharsets.UTF_8);
                     b.queryParam(k, v);
                   }
                 });
@@ -82,6 +83,10 @@ public class UrlBuilder {
     this.paths.addAll(parts);
 
     return this;
+  }
+
+  public UrlBuilder queryParam(String key, boolean val) {
+    return queryParam(key, Boolean.toString(val));
   }
 
   public UrlBuilder queryParam(String key, long val) {
