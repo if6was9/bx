@@ -52,10 +52,6 @@ public class Sleep {
     throw new IllegalArgumentException(u + " has no ChronoUnit equivalent");
   }
 
-  public static void secs(int s) {
-    sleepSecs(s);
-  }
-
   public static void sleepMillis(long milli) {
     sleep(Duration.ofMillis(milli));
   }

@@ -1,6 +1,7 @@
 package bx.util;
 
 import java.io.File;
+import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -26,5 +27,14 @@ public class RuntimeEnvironmentTest extends BxTest {
       Assertions.assertThat(re.isLinux()).isFalse();
       Assertions.assertThat(re.isDesktopSupported()).isTrue();
     }
+  }
+
+  @Test
+  public void testCI() {
+    Assertions.assertThat(
+            new RuntimeEnvironment(Config.just(Map.of("CI", "true"))).isCIEnvironment())
+        .isTrue();
+    Assertions.assertThat(new RuntimeEnvironment(Config.just(Map.of())).isCIEnvironment())
+        .isFalse();
   }
 }
