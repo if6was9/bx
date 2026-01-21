@@ -1,7 +1,7 @@
 package bx.sql.duckdb;
 
 import bx.sql.ConsoleQuery;
-import bx.sql.CsvImport;
+import bx.sql.GenericCsvImport;
 import bx.util.BxTest;
 import bx.util.Slogger;
 import org.junit.jupiter.api.Test;
@@ -83,7 +83,7 @@ public class ConsoleQueryTest extends BxTest {
         3,Benicio del Toro
         """;
 
-    CsvImport.into(dataSource).fromString(csv).table("actor").importData();
+    GenericCsvImport.into(dataSource).fromString(csv).table("actor").importData();
 
     ConsoleQuery.with(dataSource).table("actor").show();
   }

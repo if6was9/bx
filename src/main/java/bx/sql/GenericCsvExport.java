@@ -21,13 +21,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
-
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
-public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
+public class GenericCsvExport implements CsvExport<GenericCsvExport> {
 
   ByteSink byteSink;
   List<Consumer<CsvWriterBuilder>> configList = Lists.newArrayList();
@@ -36,61 +34,62 @@ public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
   String table;
   boolean gzip = false;
 
-  public static BasicCsvExport from(DataSource ds) {
+  public static GenericCsvExport from(DataSource ds) {
     Preconditions.checkNotNull(ds);
-    BasicCsvExport export = new BasicCsvExport();
+    GenericCsvExport export = new GenericCsvExport();
     export.dataSource = ds;
     return export;
-
   }
 
   class DefaultSelect implements Function<JdbcClient, JdbcClient.StatementSpec> {
     @Override
     public StatementSpec apply(JdbcClient t) {
       return t.sql(SqlUtil.interpolateTable("SELECT * from {{table}}", table));
-
     }
   }
 
-  public BasicCsvExport() {
-    
+  public GenericCsvExport() {
+
     selectFunction = new DefaultSelect();
-    
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public BasicCsvExport sql(String sql, Function<StatementSpec, StatementSpec> statement) {
+  public GenericCsvExport sql(String sql, Function<StatementSpec, StatementSpec> statement) {
 
-    return (BasicCsvExport) sql(
-        jdbc -> {
-          StatementSpec spec = jdbc.sql(sql);
+    return (GenericCsvExport)
+        sql(
+            jdbc -> {
+              StatementSpec spec = jdbc.sql(sql);
 
-          if (statement != null) {
-            return statement.apply(spec);
-          }
-          return spec;
-        });
+              if (statement != null) {
+                return statement.apply(spec);
+              }
+              return spec;
+            });
   }
 
-  public BasicCsvExport sql(String sql) {
+  public GenericCsvExport sql(String sql) {
 
-    return  sql(jdbc -> jdbc.sql(sql));
+    return sql(jdbc -> jdbc.sql(sql));
   }
 
-  public BasicCsvExport table(String table) {
+  public GenericCsvExport table(String table) {
     this.table = table;
-    
+
     return this;
   }
-  public BasicCsvExport sql(Function<JdbcClient, StatementSpec> f) {
+
+  public GenericCsvExport sql(Function<JdbcClient, StatementSpec> f) {
     this.selectFunction = f;
     return this;
   }
 
   public void export() {
 
-     selectFunction.apply(BxJdbcClient.create(dataSource,table)).query( new ExportResultSetExtractor());
+    selectFunction
+        .apply(BxJdbcClient.create(dataSource, table))
+        .query(new ExportResultSetExtractor());
   }
 
   public String exportToString() {
@@ -108,16 +107,17 @@ public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
     return b;
   }
 
-  public BasicCsvExport withConfig(Consumer<CsvWriterBuilder> config) {
+  public GenericCsvExport withConfig(Consumer<CsvWriterBuilder> config) {
     configList.add(config);
     return this;
   }
 
-  public BasicCsvExport gzip(boolean b) {
+  public GenericCsvExport gzip(boolean b) {
     this.gzip = b;
     return this;
   }
-  public BasicCsvExport to(File output) {
+
+  public GenericCsvExport to(File output) {
     if (output.getName().endsWith(".gz")) {
       this.gzip = true;
     } else {
@@ -126,7 +126,7 @@ public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
     return to(com.google.common.io.Files.asByteSink(output));
   }
 
-  public BasicCsvExport to(OutputStream w) {
+  public GenericCsvExport to(OutputStream w) {
     ByteSink sink =
         new ByteSink() {
 
@@ -139,7 +139,7 @@ public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
     return to(sink);
   }
 
-  public BasicCsvExport to(ByteSink sink) {
+  public GenericCsvExport to(ByteSink sink) {
     this.byteSink = sink;
     return this;
   }
@@ -192,10 +192,10 @@ public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
     csvWriter.writeRecord(vals);
   }
 
-
   public ResultSetExtractor<Integer> newResultSetExtractor() {
     return new ExportResultSetExtractor();
   }
+
   public class ExportResultSetExtractor implements ResultSetExtractor<Integer> {
     @Override
     public Integer extractData(ResultSet rs) throws SQLException {
@@ -223,5 +223,4 @@ public  class BasicCsvExport implements CsvExport<BasicCsvExport>{
       }
     }
   }
- 
 }

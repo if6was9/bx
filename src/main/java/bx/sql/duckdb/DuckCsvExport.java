@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
-public class DuckCsvExport implements CsvExport<DuckCsvExport>{
+public class DuckCsvExport implements CsvExport<DuckCsvExport> {
 
   static Logger logger = Slogger.forEnclosingClass();
 
@@ -76,10 +76,8 @@ public class DuckCsvExport implements CsvExport<DuckCsvExport>{
   }
 
   public DuckCsvExport sql(String sql) {
-    return sql(sql,null);
+    return sql(sql, null);
   }
-
-
 
   public DuckCsvExport sql(String sql, Function<StatementSpec, StatementSpec> paramConfig) {
 
