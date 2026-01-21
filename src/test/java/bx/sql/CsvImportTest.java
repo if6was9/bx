@@ -92,7 +92,7 @@ public class CsvImportTest extends BxTest {
     CsvImport.into(getDataSource())
         .table("abc")
         .from(ByteSource.wrap(data))
-        .gunzip(true)
+        .gzip(true)
         .importData();
   }
 }

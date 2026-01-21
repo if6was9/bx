@@ -1,6 +1,7 @@
 package bx.sql.duckdb;
 
 import bx.sql.BxJdbcClient;
+import bx.sql.CsvExport;
 import bx.util.BxException;
 import bx.util.S;
 import bx.util.Slogger;
@@ -16,7 +17,7 @@ import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
-public class DuckCsvExport {
+public class DuckCsvExport implements CsvExport<DuckCsvExport>{
 
   static Logger logger = Slogger.forEnclosingClass();
 
@@ -41,12 +42,12 @@ public class DuckCsvExport {
     return new DuckCsvExport(ds);
   }
 
-  public DuckCsvExport(DataSource ds) {
+  DuckCsvExport(DataSource ds) {
     Preconditions.checkNotNull(ds, "DataSource cannot be null");
     this.dataSource = ds;
   }
 
-  public DuckCsvExport(DuckTable t) {
+  DuckCsvExport(DuckTable t) {
     Preconditions.checkNotNull(t, "table cannot be null");
     this.fromTable = t;
     this.dataSource = t.getDataSource();
@@ -74,11 +75,13 @@ public class DuckCsvExport {
     return this;
   }
 
-  public DuckCsvExport select(String sql) {
-    return select(sql, null);
+  public DuckCsvExport sql(String sql) {
+    return sql(sql,null);
   }
 
-  public DuckCsvExport select(String sql, Function<StatementSpec, StatementSpec> paramConfig) {
+
+
+  public DuckCsvExport sql(String sql, Function<StatementSpec, StatementSpec> paramConfig) {
 
     specSupplier =
         new Supplier<JdbcClient.StatementSpec>() {
@@ -100,7 +103,7 @@ public class DuckCsvExport {
             return spec;
           }
         };
-    return this;
+    return (DuckCsvExport) this;
   }
 
   private String toOutput() {
@@ -124,7 +127,7 @@ public class DuckCsvExport {
   private StatementSpec buildStatement() {
 
     if (specSupplier == null) {
-      select("select * from {{table}}");
+      sql("select * from {{table}}");
     }
     return specSupplier.get();
   }
@@ -134,7 +137,7 @@ public class DuckCsvExport {
     buildStatement().update();
   }
 
-  public String exportAsString() {
+  public String exportToString() {
     File tempOutputFile = null;
     try {
       tempOutputFile = Files.createTempFile("temp_", ".csv").toFile();

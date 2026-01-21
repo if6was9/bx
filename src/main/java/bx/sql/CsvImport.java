@@ -194,7 +194,7 @@ public class CsvImport {
     }
   }
 
-  public CsvImport gunzip(boolean gz) {
+  public CsvImport gzip(boolean gz) {
     this.gzip = gz;
     return this;
   }

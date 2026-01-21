@@ -43,7 +43,7 @@ public class DuckCsvExportTest extends BxTest {
     File outputFile = new File(createTempDir(), "out.csv");
 
     new DuckCsvExport(t)
-        .select("select * from {{table}} where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
+        .sql("select * from {{table}} where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
         .to(outputFile)
         .export();
 
@@ -61,7 +61,7 @@ public class DuckCsvExportTest extends BxTest {
     File outputFile = new File(createTempDir(), "out.csv");
 
     new DuckCsvExport(getDataSource())
-        .select("select * from adsb where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
+        .sql("select * from adsb where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
         .to(outputFile)
         .export();
 
@@ -81,7 +81,7 @@ public class DuckCsvExportTest extends BxTest {
     DuckS3Extension.load(getDataSource()).useCredentialChain();
 
     new DuckCsvExport(getDataSource())
-        .select("select * from adsb where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
+        .sql("select * from adsb where ac_type=:ac_type", st -> st.param("ac_type", "C172"))
         .toS3(bucket, "temp/out.csv")
         .export();
 
@@ -95,10 +95,10 @@ public class DuckCsvExportTest extends BxTest {
 
     String s =
         t.csvExport()
-            .select(
+            .sql(
                 "select flight,ac_type from {{table}} where ac_type=:type order by flight",
                 c -> c.param("type", "B789"))
-            .exportAsString();
+            .exportToString();
 
     logger.atInfo().log("csv export: \n{}", s);
     List<String> lines = CharSource.wrap(s).readLines();
