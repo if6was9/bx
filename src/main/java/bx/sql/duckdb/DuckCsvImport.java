@@ -1,6 +1,7 @@
 package bx.sql.duckdb;
 
 import bx.sql.BxJdbcClient;
+import bx.sql.CsvImport;
 import bx.util.BxException;
 import bx.util.S;
 import bx.util.Slogger;
@@ -19,7 +20,7 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 
-public class DuckCsvImport {
+public class DuckCsvImport implements CsvImport<DuckCsvImport> {
 
   static Logger logger = Slogger.forEnclosingClass();
 
@@ -48,6 +49,16 @@ public class DuckCsvImport {
     this.inputFile = f;
     this.inputS3Bucket = null;
     this.inputS3Key = null;
+    return this;
+  }
+
+  public DuckCsvImport gzip(boolean b) {
+    // DuckDB handles this.
+    return this;
+  }
+
+  public DuckCsvImport into(String table) {
+    this.table = DuckTable.of(dataSource, table);
     return this;
   }
 
@@ -133,14 +144,18 @@ public class DuckCsvImport {
   }
 
   public DuckTable load() {
-    return importData();
+    return importTable();
   }
 
   public static DuckCsvImport using(DataSource ds) {
     return new DuckCsvImport(ds);
   }
 
-  public DuckTable importData() {
+  public void importData() {
+    importTable();
+  }
+
+  public DuckTable importTable() {
 
     try {
       if (this.table == null) {

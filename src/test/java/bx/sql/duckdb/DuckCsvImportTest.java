@@ -14,7 +14,7 @@ public class DuckCsvImportTest extends BxTest {
     DuckTable t =
         new DuckCsvImport(getDataSource())
             .from(new File("./src/test/resources/adsb.csv"))
-            .importData();
+            .importTable();
 
     t.show();
   }
@@ -27,7 +27,7 @@ public class DuckCsvImportTest extends BxTest {
             .from(new File("./src/test/resources/adsb.csv"))
             .columns(List.of("flight", "id"))
             .orderBy("ac_type")
-            .importData();
+            .importTable();
 
     Assertions.assertThat(t.getColumnNames()).containsExactly("flight", "id");
     t.show();
@@ -41,7 +41,7 @@ public class DuckCsvImportTest extends BxTest {
             .from(new File("./src/test/resources/adsb.csv"))
             .columns(List.of("flight", "id"))
             .orderBy("ORDER BY ac_type")
-            .importData();
+            .importTable();
 
     Assertions.assertThat(t.getColumnNames()).containsExactly("flight", "id");
     t.show();

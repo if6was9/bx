@@ -19,7 +19,11 @@ public class CsvExportTest extends BxTest {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     t.getJdbcClient()
         .sql("select flight,ac_reg as ac_reg from adsb limit 10")
-        .query(new CsvExport().withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS)).to(baos));
+        .query(
+            new GenericCsvExport()
+                .withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS))
+                .to(baos)
+                .newResultSetExtractor());
 
     System.out.println(new String(baos.toByteArray()));
   }
@@ -29,7 +33,7 @@ public class CsvExportTest extends BxTest {
     loadAdsbTable("adsb");
 
     String output =
-        CsvExport.from(getDataSource())
+        GenericCsvExport.from(getDataSource())
             .sql(
                 c ->
                     c.sql("select flight,ac_reg from adsb where flight=:flight")
@@ -43,7 +47,7 @@ public class CsvExportTest extends BxTest {
   public void testExportToFile() {
     loadAdsbTable("adsb");
 
-    CsvExport.from(getDataSource())
+    GenericCsvExport.from(getDataSource())
         .to(new File("./target/test.csv"))
         .sql(
             c ->
@@ -59,7 +63,11 @@ public class CsvExportTest extends BxTest {
     File f = Files.createTempFile("temp", ".csv.gz").toFile();
     t.getJdbcClient()
         .sql("select flight,ac_reg as ac_reg from adsb limit 10")
-        .query(new CsvExport().withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS)).to(f));
+        .query(
+            new GenericCsvExport()
+                .withConfig(c -> c.quoteStrategy(QuoteStrategies.ALWAYS))
+                .to(f)
+                .newResultSetExtractor());
 
     System.out.println(f);
   }
@@ -69,25 +77,25 @@ public class CsvExportTest extends BxTest {
     DuckTable t = loadAdsbTable("adsb");
 
     String csv1 =
-        CsvExport.from(t.getDataSource())
+        GenericCsvExport.from(t.getDataSource())
             .sql("select flight,ac_reg from adsb order by flight limit 5")
             .exportToString();
     String csv2 =
-        CsvExport.from(t.getDataSource())
+        GenericCsvExport.from(t.getDataSource())
             .sql(c -> c.sql("select flight,ac_reg from adsb order by flight limit 5"))
             .exportToString();
     String csv3 =
-        CsvExport.from(t.getDataSource())
+        GenericCsvExport.from(t.getDataSource())
             .sql("select flight,ac_reg from adsb order by flight limit 5", null)
             .exportToString();
     String csv4 =
-        CsvExport.from(t.getDataSource())
+        GenericCsvExport.from(t.getDataSource())
             .sql(
                 "select flight,ac_reg from adsb order by flight limit :limit",
                 c -> c.param("limit", 5))
             .exportToString();
     String csv5 =
-        CsvExport.from(t.getDataSource())
+        GenericCsvExport.from(t.getDataSource())
             .sql(
                 c ->
                     c.sql("select flight,ac_reg from adsb order by flight limit :limit")

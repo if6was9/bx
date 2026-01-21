@@ -22,6 +22,7 @@ public class CsvImportTest extends BxTest {
         Homer,Schnoodle,8,
         Rosie,Golden Schnoodle,3,
         """;
+
     CsvImport.into(getDataSource()).table("dog").fromString(data).importData();
 
     ConsoleQuery.with(c).table("dog").select();
@@ -39,7 +40,7 @@ public class CsvImportTest extends BxTest {
         name,birthdate
         Homer,2016-07-18
         """;
-    CsvImport.into(getDataSource()).table("dog").fromString(data).importData();
+    GenericCsvImport.into(getDataSource()).table("dog").fromString(data).importData();
 
     ConsoleQuery.with(c).table("dog").select();
   }
@@ -56,7 +57,7 @@ public class CsvImportTest extends BxTest {
         event,ts
         a,2016-07-18T12:13:14
         """;
-    CsvImport.into(getDataSource()).table("event").fromString(data).importData();
+    GenericCsvImport.into(getDataSource()).table("event").fromString(data).importData();
 
     ConsoleQuery.with(c).table("event").select();
   }
@@ -74,7 +75,7 @@ public class CsvImportTest extends BxTest {
         a,2016-07-18T12:13:14Z
         b,2016-07-18T12:13:14-07:00
         """;
-    CsvImport.into(getDataSource()).table("event").fromString(data).importData();
+    GenericCsvImport.into(getDataSource()).table("event").fromString(data).importData();
 
     ConsoleQuery.with(c).table("event").select();
   }
@@ -89,10 +90,10 @@ public class CsvImportTest extends BxTest {
         BaseEncoding.base64()
             .decode("H4sICMzXaWkAA3Rlc3QuY3N2AEvUSdJJ5jLUMdIx5jLRMdUx4zLXsdCx5OICAHjgCnYZAAAA");
 
-    CsvImport.into(getDataSource())
+    GenericCsvImport.into(getDataSource())
         .table("abc")
         .from(ByteSource.wrap(data))
-        .gunzip(true)
+        .gzip(true)
         .importData();
   }
 }
