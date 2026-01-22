@@ -31,7 +31,7 @@
     <!-- dependency versions -->
     <unirest.version>4.7.4</unirest.version>
     <slf4j.version>2.0.17</slf4j.version>
-    <jackson.version>3.0.3</jackson.version>
+    <jackson.version>3.0.4</jackson.version>
 
   </properties>
   <developers>
