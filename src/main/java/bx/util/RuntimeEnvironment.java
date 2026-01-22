@@ -135,27 +135,19 @@ public class RuntimeEnvironment {
   }
 
   public boolean isRunningInLambda() {
-    return lambdaSupplier.get();
+    return config.get("LAMBDA_TASK_ROOT").isPresent();
   }
 
-  Supplier<Boolean> lambdaSupplier =
-      Suppliers.memoize(
-          () -> {
-            return config.get("LAMBDA_TASK_ROOT").isPresent();
-          });
-
-  Supplier<Boolean> desktopSupported =
-      Suppliers.memoize(
-          () -> {
-            try {
-              return Desktop.isDesktopSupported();
-            } catch (Exception e) {
-              logger.atInfo().setCause(e).log();
-            }
-            return false;
-          });
-
   public boolean isDesktopSupported() {
-    return desktopSupported.get();
+    try {
+
+      if (config.getBoolean("java.awt.headless").orElse(false) == true) {
+        return false;
+      }
+      return Desktop.isDesktopSupported();
+    } catch (Exception ignore) {
+      logger.atDebug().setCause(ignore).log();
+    }
+    return false;
   }
 }

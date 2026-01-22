@@ -89,6 +89,58 @@ public class ConfigTest {
   }
 
   @Test
+  public void testBoolean() {
+
+    Assertions.assertThat(Config.just(Map.of()).getBoolean("b")).isEmpty();
+
+    Assertions.assertThat(Config.just(Map.of("b", "true")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "TrUe")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "1")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "enabled")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "enable")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "t")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "yes")).getBoolean("b").get()).isTrue();
+
+    Assertions.assertThat(Config.just(Map.of("b", "true ")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", " TrUe ")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", " 1")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", " enabled")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "enable")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "t")).getBoolean("b").get()).isTrue();
+    Assertions.assertThat(Config.just(Map.of("b", "yes")).getBoolean("b").get()).isTrue();
+
+    Assertions.assertThat(Config.just(Map.of("b", "false")).getBoolean("b").get()).isFalse();
+    Assertions.assertThat(Config.just(Map.of("b", "fAlSe")).getBoolean("b").get()).isFalse();
+    Assertions.assertThat(Config.just(Map.of("b", "0")).getBoolean("b").get()).isFalse();
+    Assertions.assertThat(Config.just(Map.of("b", "disabled")).getBoolean("b").get()).isFalse();
+    Assertions.assertThat(Config.just(Map.of("b", "disable")).getBoolean("b").get()).isFalse();
+    Assertions.assertThat(Config.just(Map.of("b", "f")).getBoolean("b").get()).isFalse();
+    Assertions.assertThat(Config.just(Map.of("b", "no")).getBoolean("b").get()).isFalse();
+
+    Assertions.assertThat(Config.just(Map.of("b", "nope")).getBoolean("b")).isEmpty();
+    Assertions.assertThat(Config.just(Map.of("b", "yessir")).getBoolean("b")).isEmpty();
+  }
+
+  @Test
+  public void testInt() {
+    Assertions.assertThat(Config.just(Map.of("v", "BS")).getInt("v")).isEmpty();
+    Assertions.assertThat(Config.just(Map.of("v", "123")).getInt("v").get()).isEqualTo(123);
+  }
+
+  @Test
+  public void testLong() {
+    Assertions.assertThat(Config.just(Map.of("v", "BS")).getInt("v")).isEmpty();
+    Assertions.assertThat(Config.just(Map.of("v", "123456")).getLong("v").get()).isEqualTo(123456);
+  }
+
+  @Test
+  public void testDouble() {
+    Assertions.assertThat(Config.just(Map.of("v", "BS")).getDouble("v")).isEmpty();
+    Assertions.assertThat(Config.just(Map.of("v", "123.45")).getDouble("v").get())
+        .isEqualTo(123.45);
+  }
+
+  @Test
   public void testImmutable() {
 
     Config cfg = Config.just(null);

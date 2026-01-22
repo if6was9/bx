@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import tools.jackson.dataformat.yaml.YAMLMapper;
@@ -70,6 +71,64 @@ public abstract class Config {
   public abstract Map<String, String> getProperties();
 
   abstract Optional<Map<String, String>> getPropertiesIfAvailable();
+
+  static final Set<String> TRUE_VALUES =
+      Set.of("1", "yes", "on", "y", "t", "true", "enabled", "enable");
+  static final Set<String> FALSE_VALUES =
+      Set.of("0", "no", "off", "n", "f", "false", "disabled", "disable");
+
+  public Optional<Boolean> getBoolean(String name) {
+    Optional<String> val = get(name);
+    if (val.isEmpty()) {
+      return Optional.empty();
+    }
+
+    String stringVal = val.get().toLowerCase().trim();
+
+    if (TRUE_VALUES.contains(stringVal)) {
+      return Optional.of(true);
+    } else if (FALSE_VALUES.contains(stringVal)) {
+      return Optional.of(false);
+    }
+
+    return Optional.empty();
+  }
+
+  public Optional<Integer> getInt(String name) {
+    Optional<String> val = get(name);
+    if (val.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.of(Integer.parseInt(val.get().strip()));
+    } catch (Exception ignore) {
+      return Optional.empty();
+    }
+  }
+
+  public Optional<Long> getLong(String name) {
+    Optional<String> val = get(name);
+    if (val.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.of(Long.parseLong(val.get().strip()));
+    } catch (Exception ignore) {
+      return Optional.empty();
+    }
+  }
+
+  public Optional<Double> getDouble(String name) {
+    Optional<String> val = get(name);
+    if (val.isEmpty()) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.of(Double.parseDouble(val.get().strip()));
+    } catch (Exception ignore) {
+      return Optional.empty();
+    }
+  }
 
   public Optional<String> get(String name) {
     return S.notBlank(getProperties().get(name));
