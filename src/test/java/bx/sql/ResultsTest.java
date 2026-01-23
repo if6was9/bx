@@ -736,4 +736,26 @@ public class ResultsTest extends BxTest {
                   .isEqualTo(rs.getTimestamp(1).toInstant());
             });
   }
+
+  @Test
+  public void testDemonstrateDuckDbIssue537() {
+
+    // https://github.com/duckdb/duckdb-java/issues/537
+    try {
+      var c = db().getDataSource().getConnection();
+
+      var st = c.prepareStatement("select cast(now() as DATE) as d");
+
+      var rs = st.executeQuery();
+
+      rs.next();
+
+      System.out.println(rs.getString("d")); // OK
+      System.out.println(rs.getDate("d")); // OK
+      System.out.println(rs.getTimestamp("d")); // Throws NPE
+
+    } catch (Exception e) {
+      logger.atInfo().setCause(e).log("demonstrating DuckDB Issue 537");
+    }
+  }
 }
