@@ -1,8 +1,8 @@
 package bx.sql.duckdb;
 
+import bx.sql.BxJdbcClient;
 import bx.sql.ConsoleQuery;
 import bx.sql.DbException;
-import bx.sql.SqlUtil;
 import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Joiner;
@@ -47,13 +47,9 @@ public class DuckTable {
 
   public JdbcClient getJdbcClient() {
     if (client == null) {
-      client = JdbcClient.create(getDataSource());
+      client = BxJdbcClient.create(getDataSource(), getTableName());
     }
     return client;
-  }
-
-  private String interpolateTable(String sql) {
-    return SqlUtil.interpolateTable(sql, getTableName());
   }
 
   public String getTableName() {
@@ -73,7 +69,7 @@ public class DuckTable {
   }
 
   public StatementSpec sql(String sql) {
-    return getJdbcClient().sql(interpolateTable(sql));
+    return getJdbcClient().sql(sql);
   }
 
   public void describe() {
